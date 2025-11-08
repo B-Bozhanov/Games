@@ -1,35 +1,25 @@
 ﻿namespace SnakeGame.GameObjects
 {
-    public class Food
+    public sealed class Food
     {
-        private readonly Random random;
         private readonly char symbol;
 
-        public Food()
+        public Food(Coordinates coordinates, TimeSpan lifeTime)
         {
-            this.random = new Random();
             this.symbol = '@';
+            this.StartTime = DateTime.UtcNow;
+            this.LifeTime = lifeTime; 
+            this.Coordinates = coordinates;
         }
 
         public Char Symbol => this.symbol;
 
-        public Coordinates Generate(Coordinates boardSize, IReadOnlyCollection<Coordinates> snakeBody)
-        {
-            while (true)
-            {
-                int x = this.random.Next(0, boardSize.Row);
-                int y = this.random.Next(0, boardSize.Col);
+        public DateTime StartTime { get; set; }
 
-                var food = new Coordinates(x, y);
+        public Coordinates Coordinates { get; set; }
 
-                bool isOnSnake = snakeBody.Contains(food);
-                if (isOnSnake)
-                {
-                    continue; 
-                }
+        public TimeSpan LifeTime { get; set; }
 
-                return food;
-            }
-        }
+        public bool IsExpired => DateTime.UtcNow - StartTime > LifeTime;
     }
 }

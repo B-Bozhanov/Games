@@ -26,5 +26,5 @@ public record struct Coordinates(int Row = 0, int Col = 0)
     public static Coordinates operator - (Coordinates a, Coordinates b) => new(a.Row - b.Row, a.Col - b.Col);
 
     public readonly bool IsInRange(int width, int height)
-        => this.Row >= 0 && this.Row < width && this.Col >= 0 && this.Col < height;
+        => this.Row >= 0 && this.Row <= width && this.Col >= 0 && this.Col <= height;
 }

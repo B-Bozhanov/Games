@@ -39,11 +39,11 @@ public sealed class Snake
         this.shouldEat = false;
     }
 
-    public bool WillDie(Coordinates board, Coordinates obstacle) =>
-             this.WillCollideWithSelf()
-         || this.WillHitObstacle(obstacle)
-         || !this.NextHeadPossition.IsInRange(board.Col, board.Row);
-
+    public bool WillDie(Coordinates board, Coordinates obstacle)
+        =>   this.WillCollideWithSelf()
+             || this.WillHitObstacle(obstacle)
+             || !this.NextHeadPossition.IsInRange(board.Row, board.Col);
+   
     private void ChangeDirection(Direction newDirection)
     {
         if (IsOppositeDirection(newDirection))
@@ -78,7 +78,9 @@ public sealed class Snake
         (this.CurrentDirection == Direction.Left && newDirection == Direction.Right) ||
         (this.CurrentDirection == Direction.Right && newDirection == Direction.Left);
 
-    private bool WillCollideWithSelf() => this.body.Contains(this.NextHeadPossition);
+    private bool WillCollideWithSelf() 
+        => this.body.Contains(this.NextHeadPossition);
 
-    private bool WillHitObstacle(Coordinates obstacle) => this.NextHeadPossition == obstacle;
+    private bool WillHitObstacle(Coordinates obstacle)
+        => this.NextHeadPossition == obstacle;
 }
