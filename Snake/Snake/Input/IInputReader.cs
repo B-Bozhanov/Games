@@ -1,12 +1,10 @@
 ﻿namespace SnakeGame.Input
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using SnakeGame.GameObjects.Enums;
+    using SnakeGame.Input.Enums;
 
-    internal interface IInputReader
+    public interface IInputReader
     {
+        public Direction GetInput();
     }
 }

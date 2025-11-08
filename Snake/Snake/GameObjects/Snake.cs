@@ -20,6 +20,8 @@ public sealed class Snake
 
     public Coordinates NextHeadPossition => this.GetNextHeadPossition();
 
+    public Coordinates GetTailPossition => this.body.Peek();
+
     public void Eat() => this.shouldEat = true;
 
     public void Move(Direction newDirection)
@@ -49,7 +51,10 @@ public sealed class Snake
             return;
         }
 
-        this.CurrentDirection = newDirection;
+        if (newDirection != Direction.None)
+        {
+            this.CurrentDirection = newDirection;
+        }
     }
 
     private Coordinates GetNextHeadPossition()
