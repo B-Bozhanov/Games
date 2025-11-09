@@ -4,13 +4,13 @@ using SnakeGame.GameObjects.Enums;
 
 public record struct Coordinates(int Row = 0, int Col = 0)
 {
-    public static readonly Coordinates Up = new(-1, 0);
+    private static readonly Coordinates Up = new(-1, 0);
 
-    public static readonly Coordinates Down = new(1, 0);
+    private static readonly Coordinates Down = new(1, 0);
 
-    public static readonly Coordinates Left = new(0, -1);
+    private static readonly Coordinates Left = new(0, -1);
 
-    public static readonly Coordinates Right = new(0, 1);
+    private static readonly Coordinates Right = new(0, 1);
 
     public readonly Coordinates Move(Direction direction) => direction switch
     {

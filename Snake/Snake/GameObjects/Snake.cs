@@ -1,8 +1,9 @@
 ﻿namespace SnakeGame.GameObjects;
 
 using SnakeGame.GameObjects.Enums;
+using SnakeGame.GameObjects.Interfaces;
 
-public sealed class Snake
+public sealed class Snake : ISnake
 {
     private bool shouldEat;
     private readonly Queue<Coordinates> body = new();
@@ -16,7 +17,7 @@ public sealed class Snake
 
     public IReadOnlyCollection<Coordinates> Body => this.body;
 
-    public Direction CurrentDirection { get; set; }
+    public Direction CurrentDirection { get; private set; }
 
     public Coordinates NextHeadPossition => this.GetNextHeadPossition();
 
@@ -41,10 +42,10 @@ public sealed class Snake
         this.shouldEat = false;
     }
 
-    public bool WillDie(Coordinates board, Coordinates obstacle)
+    public bool WillDie(Coordinates boardSize, Coordinates obstacle)
         =>      this.WillCollideWithSelf()
              || this.WillHitObstacle(obstacle)
-             || !this.NextHeadPossition.IsInRange(board.Row, board.Col);
+             || !this.NextHeadPossition.IsInRange(boardSize.Row, boardSize.Col);
    
     private void ChangeDirection(Direction newDirection)
     {

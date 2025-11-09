@@ -2,5 +2,6 @@
 {
     public interface IGameScene
     {
+        public void Run();
     }
 }

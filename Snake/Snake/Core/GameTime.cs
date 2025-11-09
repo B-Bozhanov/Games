@@ -1,6 +1,6 @@
 ﻿namespace SnakeGame.Core
 {
-    public class GameTime
+    public class GameTime : IGameTime
     {
         private readonly int targetFrameTimeMs;
         private DateTime lastFrameTime;
