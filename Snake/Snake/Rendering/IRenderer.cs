@@ -1,12 +1,13 @@
 ﻿namespace SnakeGame.Rendering
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using SnakeGame.GameObjects;
 
-    internal class IRenderer
+    public interface IRenderer
     {
+        void ClearElement(Coordinates element);
+
+        public void DrowFood(Coordinates food, char symbol);
+
+        public void DrowSnake(IReadOnlyCollection<Coordinates> snakeBody);
     }
 }
