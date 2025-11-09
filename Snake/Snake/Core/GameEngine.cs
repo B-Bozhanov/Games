@@ -5,23 +5,15 @@
     using SnakeGame.Input;
     using SnakeGame.Rendering;
 
-    public class GameEngine : IGameScene
+    public class GameEngine(IInputReader inputReader, IGameTime gameTime,
+                            IRenderer renderer, IFoodFactory foodFactory, 
+                            ISnake snake) : IGameScene
     {
-        private readonly IInputReader inputReader;
-        private readonly IGameTime gameTime;
-        private readonly IRenderer renderer;
-        private readonly IFoodFactory foodFactory;
-        private readonly ISnake snake;
-
-        public GameEngine(IInputReader inputReader, IGameTime gameTime,
-                          IRenderer renderer, IFoodFactory foodFactory, ISnake snake)
-        {
-            this.inputReader = inputReader;
-            this.gameTime = gameTime;
-            this.renderer = renderer;
-            this.foodFactory = foodFactory;
-            this.snake = snake;
-        }
+        private readonly IInputReader inputReader = inputReader;
+        private readonly IGameTime gameTime = gameTime;
+        private readonly IRenderer renderer = renderer;
+        private readonly IFoodFactory foodFactory = foodFactory;
+        private readonly ISnake snake = snake;
 
         public void Run()
         {
