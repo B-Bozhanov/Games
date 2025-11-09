@@ -23,8 +23,8 @@
         {
             while (true)
             {
-                int x = this.random.Next(0, boardSize.Row - 1);
-                int y = this.random.Next(0, boardSize.Col - 1);
+                int x = this.random.Next(0, boardSize.Row - 3);
+                int y = this.random.Next(0, boardSize.Col - 3);
 
                 bool isOnSnake = snakeBody.Any(c => c.Row == x && c.Col == y);
 

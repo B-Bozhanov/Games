@@ -19,6 +19,10 @@ public sealed class ConsoleInputReader : IInputReader
             ConsoleKey.RightArrow => Direction.Right,
             ConsoleKey.UpArrow => Direction.Up,
             ConsoleKey.DownArrow => Direction.Down,
+            ConsoleKey.W => Direction.Up,
+            ConsoleKey.S => Direction.Down,
+            ConsoleKey.A => Direction.Left,
+            ConsoleKey.D => Direction.Right,
             _=> Direction.None,
         };
     }

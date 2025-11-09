@@ -20,6 +20,8 @@ public sealed class Snake
 
     public Coordinates NextHeadPossition => this.GetNextHeadPossition();
 
+    public Coordinates HeadPossition => this.GetHeadPossition();
+
     public Coordinates GetTailPossition => this.body.Peek();
 
     public void Eat() => this.shouldEat = true;
@@ -40,7 +42,7 @@ public sealed class Snake
     }
 
     public bool WillDie(Coordinates board, Coordinates obstacle)
-        =>   this.WillCollideWithSelf()
+        =>      this.WillCollideWithSelf()
              || this.WillHitObstacle(obstacle)
              || !this.NextHeadPossition.IsInRange(board.Row, board.Col);
    
@@ -62,6 +64,11 @@ public sealed class Snake
         var currentHeadPossition = this.body.Last();
         var nextHeadPossition = currentHeadPossition.Move(this.CurrentDirection);
         return nextHeadPossition;
+    }
+
+    private Coordinates GetHeadPossition()
+    {
+        return this.body.Last();
     }
 
     private void InitialBody(int startPossitionRow, int length)
