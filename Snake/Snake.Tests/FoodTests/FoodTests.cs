@@ -48,4 +48,22 @@ public class FoodTests
         // Assert
         Assert.True(food.IsExpired);
     }
+
+    [Fact]
+    public void IsExpired_Should_BeFalse_Immediately_After_Creation()
+    {
+        var food = new Food(new Coordinates(1, 1), TimeSpan.FromSeconds(1));
+
+        Assert.False(food.IsExpired);
+    }
+
+    [Fact]
+    public void Multiple_Foods_Should_Have_Different_StartTimes()
+    {
+        var f1 = new Food(new Coordinates(0, 0), TimeSpan.FromSeconds(5));
+        Thread.Sleep(10); // малко забавяне
+        var f2 = new Food(new Coordinates(0, 1), TimeSpan.FromSeconds(5));
+
+        Assert.True(f2.StartTime >= f1.StartTime);
+    }
 }

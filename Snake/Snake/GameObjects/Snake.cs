@@ -30,14 +30,14 @@ public sealed class Snake
     {
         this.ChangeDirection(newDirection);
 
-        this.body.Enqueue(this.NextHeadPossition);
+        var nextHead = this.NextHeadPossition;
+        this.body.Enqueue(nextHead);
 
-        if (this.shouldEat)
+        if (!this.shouldEat)
         {
-            this.body.Enqueue(this.NextHeadPossition);
+            this.body.Dequeue();
         }
 
-        this.body.Dequeue();
         this.shouldEat = false;
     }
 

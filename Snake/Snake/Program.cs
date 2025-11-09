@@ -4,7 +4,7 @@ using SnakeGame.Input;
 
 var snake = new Snake(0, 6);
 Console.CursorVisible = false;
-var gameTime = new GameTime(targetFps: 5);
+var gameTime = new GameTime(targetFps: 13);
 var colums = Console.WindowWidth;
 var rows = Console.WindowHeight;
 var boardSize = new Coordinates(rows, colums);
