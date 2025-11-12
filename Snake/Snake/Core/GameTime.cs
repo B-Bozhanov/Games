@@ -7,7 +7,6 @@
         private readonly int defaultTargetFps = GlobalConstants.GameConstants.GameDefaultFps;
         private int currentFps;
 
-        private readonly int targetFrameTimeMs;
         private DateTime lastFrameTime;
         private DateTime startTime;
 
@@ -23,6 +22,11 @@
         public int TargetFrameTimeMs => 1000 / this.currentFps;
 
         public TimeSpan MiddleTime { get; private set; }
+
+        public void IncreaseSpeed()
+        {
+            this.currentFps++;
+        }
 
         public void Tick()
         {

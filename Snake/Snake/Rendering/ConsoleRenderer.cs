@@ -12,25 +12,25 @@
         public void ClearElement(Coordinates element)
         {
             Console.SetCursorPosition(element.Col, element.Row);
-            Console.WriteLine(' ');
+            Console.Write(' ');
         }
 
-        public void Drow(Coordinates possition, char symbol, Color color = Color.None)
+        public void Draw(Coordinates possition, string symbol, Color color = Color.None)
         {
             Console.SetCursorPosition(possition.Col, possition.Row);
-            Console.WriteLine(symbol);
+            Console.Write(symbol);
         }
 
-        public void Drow(IReadOnlyCollection<Coordinates> coordinates)
+        public void Draw(IReadOnlyCollection<Coordinates> coordinates)
         {
             foreach (var item in coordinates)
             {
                 Console.SetCursorPosition(item.Col, item.Row);
-                Console.WriteLine('*');
+                Console.Write('*');
             }
         }
 
-        public void Drow(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None)
+        public void Draw(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None)
         {
             throw new NotImplementedException();
         }

@@ -13,6 +13,8 @@
             public const int WallsWidth = 1;
             public const int GameStartRow = HeaderHeight + WallsWidth;
             public const int GameStartCol = WallsWidth;
+            public const int TotalGameWidthCols = GameWidth + WallsWidth + WallsWidth;
+            public const int TotalGameWidthRows = HeaderHeight + WallsWidth + GameHeight + WallsWidth;
         }
 
         public static class SnakeConstants

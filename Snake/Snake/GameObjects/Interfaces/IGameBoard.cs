@@ -1,13 +1,9 @@
 ﻿namespace SnakeGame.GameObjects.Interfaces
 {
-    public interface IGameBoard
+    public interface IGameBoard : IBoard
     {
-        public Coordinates BoardSize { get; }
+        public void RenderBoard();
 
         public bool SetSettings();
-
-        public IReadOnlyCollection<Coordinates> Walls { get; }
-
-        public void CreateWalls();
     }
 }

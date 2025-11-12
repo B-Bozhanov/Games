@@ -36,23 +36,25 @@
             var boardSize = new Coordinates(rows, colums);
             var food = this.foodFactory.GetFood(boardSize, snake.Body);
             var obstacle = new Coordinates(500, 500);
-            var test = new ConsoleGameBoard();
-            test.CreateWalls();
+            BaseBoard test = new ConsoleGameBoard(renderer);
+            test.CreateBorder();
+            test.RenderBoard();
 
 
-            renderer.Drow(food.Coordinates, food.Symbol);
+            renderer.Draw(food.Coordinates, food.Symbol.ToString());
 
             var score = 1;
+            var currentSpeed = 1;
             while (true)
             {
                 Console.SetCursorPosition(50, 1);
-                Console.WriteLine($"{snake.HeadPossition.Row} ===== {snake.HeadPossition.Col}");
+                Console.Write($"Speed -- {currentSpeed}");
                 var direction = this.inputReader.GetInput();
                 var nexHead = snake.GetNextHeadPossition(direction);
 
                 if (snake.WillDie(boardSize, obstacle, direction))
                 {
-                    Console.WriteLine("Game Over");
+                    Console.Write("Game Over");
                     break;
                 }
 
@@ -63,19 +65,19 @@
                     this.snake.Eat();
                     this.renderer.ClearElement(food.Coordinates);
                     food = foodFactory.GetFood(boardSize, snake.Body);
-                    this.renderer.Drow(food.Coordinates, food.Symbol);
-
-                    test.Score(score++);
+                    this.renderer.Draw(food.Coordinates, food.Symbol.ToString());
+                    this.gameTime.IncreaseSpeed();
+                    currentSpeed++;
                 }
 
                 if (food.IsExpired)
                 {
                     this.renderer.ClearElement(food.Coordinates);
                     food = this.foodFactory.GetFood(boardSize, snake.Body);
-                    this.renderer.Drow(food.Coordinates, food.Symbol);
+                    this.renderer.Draw(food.Coordinates, food.Symbol.ToString());
                 }
 
-                this.renderer.Drow(this.snake.Body);
+                this.renderer.Draw(this.snake.Body);
                 if (!this.snake.ShouldEat)
                 {
                     this.renderer.ClearElement(this.snake.GetLastTailPossition);

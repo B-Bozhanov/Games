@@ -2,6 +2,7 @@
 
 using SnakeGame.GameObjects.Enums;
 using SnakeGame.Common;
+
 public record struct Coordinates(int Row = 0, int Col = 0)
 {
     private static readonly Coordinates Up = new(-1, 0);
@@ -12,6 +13,8 @@ public record struct Coordinates(int Row = 0, int Col = 0)
 
     private static readonly Coordinates Right = new(0, 1);
 
+    public CellType Symbol { get; set; }
+
     public readonly Coordinates Move(Direction direction) => direction switch
     {
         Direction.Up => this + Up,
@@ -21,13 +24,13 @@ public record struct Coordinates(int Row = 0, int Col = 0)
         _ => this
     };
 
-    public static Coordinates operator + (Coordinates x, Coordinates y) => new(x.Row + y.Row, x.Col + y.Col);
+    public static Coordinates operator +(Coordinates x, Coordinates y) => new(x.Row + y.Row, x.Col + y.Col);
 
-    public static Coordinates operator - (Coordinates a, Coordinates b) => new(a.Row - b.Row, a.Col - b.Col);
+    public static Coordinates operator -(Coordinates a, Coordinates b) => new(a.Row - b.Row, a.Col - b.Col);
 
-    public readonly bool IsInRange(int height, int width)
-        => this.Row > GlobalConstants.GameConstants.HeaderHeight
-        && this.Row < height 
-        && this.Col > 0 
+    public readonly bool IsInRange(int height, int width) =>
+           this.Row > GlobalConstants.GameConstants.HeaderHeight
+        && this.Row < height
+        && this.Col > 0
         && this.Col < width;
 }

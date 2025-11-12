@@ -6,6 +6,8 @@
 
         public TimeSpan MiddleTime { get; }
 
+        public void IncreaseSpeed();
+
         public void Tick();
     }
 }

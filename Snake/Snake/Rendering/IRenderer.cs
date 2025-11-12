@@ -9,10 +9,10 @@
 
         void ClearAll();
 
-        public void Drow(Coordinates possition, char symbol, Color color = Color.None);
+        public void Draw(Coordinates possition, string symbol, Color color = Color.None);
 
-        public void Drow(IReadOnlyCollection<Coordinates> coordinates);
+        public void Draw(IReadOnlyCollection<Coordinates> coordinates);
 
-        public void Drow(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None);
+        public void Draw(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None);
     }
 }
