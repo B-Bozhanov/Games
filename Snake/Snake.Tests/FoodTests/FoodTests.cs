@@ -70,6 +70,6 @@ public class FoodTests
     [Fact]
     public void Food_Should_BeFalse_On_GameColOrRow()
     {
-        var f1 = new Food(new Coordinates(5,));
+        //var f1 = new Food(new Coordinates(5,));
     }
 }

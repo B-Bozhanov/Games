@@ -5,6 +5,8 @@
 
     using Xunit;
 
+    using static SnakeGame.Common.GlobalConstants.GameConstants;
+
     public class CoordinatesTests
     {
         [Fact]
@@ -70,8 +72,9 @@
         }
 
         [Theory]
-        [InlineData(0, 0, 10, 10, true)]   // горе вляво
-        [InlineData(10, 10, 10, 10, true)] // долу вдясно при твоята имплементация (<=)
+        [InlineData(GameStartRow, GameStartCol, 10, 10, true)]   // горе вляво
+        [InlineData(9, 9, 10, 10, true)] // долу вдясно 
+        [InlineData(10, 10, 10, 10, false)] // долу вдясно 
         [InlineData(-1, 0, 10, 10, false)]
         [InlineData(0, -1, 10, 10, false)]
         [InlineData(11, 10, 10, 10, false)]

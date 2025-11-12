@@ -58,8 +58,6 @@
 
                 this.snake.Move(direction);
 
-
-
                 if (nexHead == food.Coordinates)
                 {
                     this.snake.Eat();

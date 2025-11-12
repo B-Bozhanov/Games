@@ -11,6 +11,8 @@
             public const int GameHeight = 25;
             public const int HeaderHeight = 3;
             public const int WallsWidth = 1;
+            public const int GameStartRow = HeaderHeight + WallsWidth;
+            public const int GameStartCol = WallsWidth;
         }
 
         public static class SnakeConstants

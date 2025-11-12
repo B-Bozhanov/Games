@@ -127,9 +127,8 @@
 
             snake.Move(Direction.Down);
             snake.Move(Direction.Left);
-            snake.Move(Direction.Up);
 
-            Assert.True(snake.WillDie(board, obstacle, Direction.None));
+            Assert.True(snake.WillDie(board, obstacle, Direction.Up));
         }
 
         [Fact]

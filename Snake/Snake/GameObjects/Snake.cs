@@ -19,17 +19,24 @@ public sealed class Snake : ISnake
 
     public IReadOnlyCollection<Coordinates> Body => this.body;
 
-    public bool ShouldEat => this.shouldEat;
-
-    public Direction CurrentDirection { get;  set; }
-
-    public Coordinates HeadPossition => this.GetHeadPossition();
+    public Direction CurrentDirection { get; set; }
 
     public Coordinates GetCurrentTailPossition => this.body.Peek();
 
     public Coordinates GetLastTailPossition { get; private set; }
 
+    public Coordinates HeadPossition => this.GetHeadPossition();
+
+    public bool ShouldEat => this.shouldEat;
+
     public void Eat() => this.shouldEat = true;
+
+    public Coordinates GetNextHeadPossition(Direction direction)
+    {
+        var currentDirection = this.ChangeDirection(direction);
+        var nextHeadPossition = this.HeadPossition.Move(currentDirection);
+        return nextHeadPossition;
+    }
 
     public void Move(Direction newDirection)
     {
@@ -52,7 +59,7 @@ public sealed class Snake : ISnake
              => this.WillCollideWithSelf(this.GetNextHeadPossition(direction))
              || this.WillHitObstacle(direction, obstacle)
              || !this.GetNextHeadPossition(direction).IsInRange(boardSize.Row, boardSize.Col);
-   
+
     private Direction ChangeDirection(Direction newDirection)
     {
         if (newDirection == Direction.None || IsOppositeDirection(newDirection))
@@ -61,13 +68,6 @@ public sealed class Snake : ISnake
         }
 
         return newDirection;
-    }
-
-    public Coordinates GetNextHeadPossition(Direction direction)
-    {
-        var currentDirection = this.ChangeDirection(direction);
-        var nextHeadPossition = this.HeadPossition.Move(currentDirection);
-        return nextHeadPossition;
     }
 
     private Coordinates GetHeadPossition()
