@@ -1,7 +1,7 @@
 ﻿namespace SnakeGame.GameObjects;
 
 using SnakeGame.GameObjects.Enums;
-
+using SnakeGame.Common;
 public record struct Coordinates(int Row = 0, int Col = 0)
 {
     private static readonly Coordinates Up = new(-1, 0);
@@ -25,6 +25,8 @@ public record struct Coordinates(int Row = 0, int Col = 0)
 
     public static Coordinates operator - (Coordinates a, Coordinates b) => new(a.Row - b.Row, a.Col - b.Col);
 
-    public readonly bool IsInRange(int width, int height)
-        => this.Row >= 0 && this.Row <= width && this.Col >= 0 && this.Col <= height;
+    public readonly bool IsInRange(int height, int width)
+        => this.Row > GlobalConstants.GameConstants.HeaderHeight
+        && this.Row < height - 1// + GlobalConstants.GameConstants.HeaderHeight
+        && this.Col >= 0 && this.Col <= width;// - GlobalConstants.GameConstants.WallsWidth;
 }

@@ -5,6 +5,7 @@
 
     using SnakeGame.GameObjects.Interfaces;
 
+    using static SnakeGame.Common.GlobalConstants.GameConstants;
     public class FoodFactory : IFoodFactory
     {
         private readonly Random random;
@@ -21,17 +22,23 @@
 
         public Food GetFood(Coordinates boardSize, IReadOnlyCollection<Coordinates> snakeBody)
         {
+            var foodCoordinates = new Coordinates();
             while (true)
             {
-                int x = this.random.Next(0, boardSize.Row - 3);
-                int y = this.random.Next(0, boardSize.Col - 3);
+                int row = this.random.Next(HeaderHeight, boardSize.Row -1);
+                int col = this.random.Next(0, boardSize.Col);
+                foodCoordinates.Row = row;
+                foodCoordinates.Col = col;
+                bool isOnSnake = snakeBody.Any(c => c.Row == row && c.Col == col);
 
-                bool isOnSnake = snakeBody.Any(c => c.Row == x && c.Col == y);
-
+                if (!foodCoordinates.IsInRange(GameHeight, GameWidth))
+                {
+                    Console.WriteLine("Bug");
+                    continue;
+                }
                 if (isOnSnake) continue;
 
                 this.foodLifeTimeSeconds = TimeSpan.FromSeconds(this.random.Next(this.startSeconds, this.endSeconds));
-                var foodCoordinates = new Coordinates(x, y);
                 var food = new Food(foodCoordinates, foodLifeTimeSeconds);
 
                 return food;

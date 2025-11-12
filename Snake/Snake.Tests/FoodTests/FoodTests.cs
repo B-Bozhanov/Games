@@ -66,4 +66,10 @@ public class FoodTests
 
         Assert.True(f2.StartTime >= f1.StartTime);
     }
+
+    [Fact]
+    public void Food_Should_BeFalse_On_GameColOrRow()
+    {
+        var f1 = new Food(new Coordinates(5,));
+    }
 }

@@ -3,67 +3,70 @@
 using SnakeGame.GameObjects.Enums;
 using SnakeGame.GameObjects.Interfaces;
 
+using static SnakeGame.Common.GlobalConstants;
+
 public sealed class Snake : ISnake
 {
     private bool shouldEat;
     private readonly Queue<Coordinates> body = new();
 
-    public Snake(int startPossitionRow = 0, int length = 6)
+    public Snake(int startPossition = SnakeConstants.StartPossitionRow, int length = SnakeConstants.DefaultLength)
     {
         this.shouldEat = false;
-        this.InitialBody(startPossitionRow, length);
-        this.CurrentDirection = Direction.Right; //Default direction
+        this.InitialBody(startPossition, length);
+        this.CurrentDirection = SnakeConstants.DefaultDirection;
     }
 
     public IReadOnlyCollection<Coordinates> Body => this.body;
 
-    public Direction CurrentDirection { get; private set; }
+    public bool ShouldEat => this.shouldEat;
 
-    public Coordinates NextHeadPossition => this.GetNextHeadPossition();
+    public Direction CurrentDirection { get;  set; }
 
     public Coordinates HeadPossition => this.GetHeadPossition();
 
-    public Coordinates GetTailPossition => this.body.Peek();
+    public Coordinates GetCurrentTailPossition => this.body.Peek();
+
+    public Coordinates GetLastTailPossition { get; private set; }
 
     public void Eat() => this.shouldEat = true;
 
     public void Move(Direction newDirection)
     {
-        this.ChangeDirection(newDirection);
+        var cuurentDirection = this.ChangeDirection(newDirection);
+        this.CurrentDirection = cuurentDirection;
 
-        var nextHead = this.NextHeadPossition;
+        var nextHead = this.GetNextHeadPossition(cuurentDirection);
         this.body.Enqueue(nextHead);
 
         if (!this.shouldEat)
         {
+            this.GetLastTailPossition = this.body.Peek();
             this.body.Dequeue();
         }
 
         this.shouldEat = false;
     }
 
-    public bool WillDie(Coordinates boardSize, Coordinates obstacle)
-        =>      this.WillCollideWithSelf()
-             || this.WillHitObstacle(obstacle)
-             || !this.NextHeadPossition.IsInRange(boardSize.Row, boardSize.Col);
+    public bool WillDie(Coordinates boardSize, Coordinates obstacle, Direction direction)
+             => this.WillCollideWithSelf(this.GetNextHeadPossition(direction))
+             || this.WillHitObstacle(direction, obstacle)
+             || !this.GetNextHeadPossition(direction).IsInRange(boardSize.Row, boardSize.Col);
    
-    private void ChangeDirection(Direction newDirection)
+    private Direction ChangeDirection(Direction newDirection)
     {
-        if (IsOppositeDirection(newDirection))
+        if (newDirection == Direction.None || IsOppositeDirection(newDirection))
         {
-            return;
+            return this.CurrentDirection; ;
         }
 
-        if (newDirection != Direction.None)
-        {
-            this.CurrentDirection = newDirection;
-        }
+        return newDirection;
     }
 
-    private Coordinates GetNextHeadPossition()
+    public Coordinates GetNextHeadPossition(Direction direction)
     {
-        var currentHeadPossition = this.body.Last();
-        var nextHeadPossition = currentHeadPossition.Move(this.CurrentDirection);
+        var currentDirection = this.ChangeDirection(direction);
+        var nextHeadPossition = this.HeadPossition.Move(currentDirection);
         return nextHeadPossition;
     }
 
@@ -74,9 +77,9 @@ public sealed class Snake : ISnake
 
     private void InitialBody(int startPossitionRow, int length)
     {
-        for (int i = 0; i < length; i++)
+        for (int row = 1; row <= length; row++)
         {
-            this.body.Enqueue(new Coordinates(startPossitionRow, i));
+            this.body.Enqueue(new Coordinates(startPossitionRow, row));
         }
     }
 
@@ -86,9 +89,16 @@ public sealed class Snake : ISnake
         (this.CurrentDirection == Direction.Left && newDirection == Direction.Right) ||
         (this.CurrentDirection == Direction.Right && newDirection == Direction.Left);
 
-    private bool WillCollideWithSelf() 
-        => this.body.Contains(this.NextHeadPossition);
+    private bool WillCollideWithSelf(Coordinates nextHead)
+    {
+        if (!this.shouldEat && nextHead == this.GetCurrentTailPossition)
+        {
+            return false;
+        }
 
-    private bool WillHitObstacle(Coordinates obstacle)
-        => this.NextHeadPossition == obstacle;
+        return this.body.Contains(nextHead);
+    }
+
+    private bool WillHitObstacle(Direction direction, Coordinates obstacle)
+        => this.GetNextHeadPossition(direction) == obstacle;
 }

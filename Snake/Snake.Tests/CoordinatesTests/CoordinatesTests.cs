@@ -76,11 +76,11 @@
         [InlineData(0, -1, 10, 10, false)]
         [InlineData(11, 10, 10, 10, false)]
         [InlineData(10, 11, 10, 10, false)]
-        public void IsInRange_Should_Return_Correct_Result(int row, int col, int width, int height, bool expected)
+        public void IsInRange_Should_Return_Correct_Result(int row, int col, int height, int width, bool expected)
         {
             var coord = new Coordinates(row, col);
 
-            var inRange = coord.IsInRange(width, height);
+            var inRange = coord.IsInRange(height, width);
 
             Assert.Equal(expected, inRange);
         }
