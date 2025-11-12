@@ -1,11 +1,14 @@
 ﻿namespace Snake.Tests.FoodTests;
 
 using SnakeGame.GameObjects;
+using SnakeGame.GameObjects.Enums;
 
 using Xunit;
 
 public class FoodTests
 {
+    private const int HeaderHeight = 3;
+
     [Fact]
     public void Constructor_Sets_Properties_Correctly()
     {
@@ -68,8 +71,87 @@ public class FoodTests
     }
 
     [Fact]
-    public void Food_Should_BeFalse_On_GameColOrRow()
+    public void GetFood_Should_Return_OnlyPlayableCells_NotOnWalls_NotInHeader_NotOnSnake()
     {
-        //var f1 = new Food(new Coordinates(5,));
+        // Arrange: тотален размер на конзолата (редове, колони)
+        var board = new Coordinates(25, 80);
+
+        // Змията – достатъчно дълга, за да има реален шанс за колизия при избор
+        var snake = new Snake(10, 6);
+        snake.CurrentDirection = Direction.Right;
+        // малко ходове, за да "разбъркаме" тялото
+        snake.Move(Direction.Right);
+        snake.Move(Direction.Down);
+        snake.Move(Direction.Left);
+
+        var foodFactory = new FoodFactory();
+
+        // Подготвяме стените (рамка): горна/долна на headerHeight и board.Row-1, лява/дясна на 0 и board.Col-1
+        var walls = BuildWalls(board, HeaderHeight);
+        var snakeCells = new HashSet<Coordinates>(snake.Body);
+
+        // Act + Assert (многократно пробване, тъй като е RNG)
+        for (int i = 0; i < 1000000; i++)
+        {
+            var food = foodFactory.GetFood(board, snake.Body);
+            var c = food.Coordinates;
+
+            // 1) В рамките на борда (дефензивни проверки)
+            Assert.InRange(c.Row, 0, board.Row - 1);
+            Assert.InRange(c.Col, 0, board.Col - 1);
+
+            // 2) Не в хедъра
+            Assert.True(c.Row >= HeaderHeight + 1, $"Food in header: row={c.Row}");
+
+            // 3) Не върху стените (рамката)
+            Assert.DoesNotContain(c, walls);
+
+            // 4) В playable интериора: редове (HeaderHeight+1 .. board.Row-2), колони (1 .. board.Col-2)
+            Assert.InRange(c.Row, HeaderHeight + 1, board.Row - 2);
+            Assert.InRange(c.Col, 1, board.Col - 2);
+
+            // 5) Да не попада върху змията
+            Assert.DoesNotContain(c, snakeCells);
+        }
+    }
+
+    [Theory]
+    [InlineData(5, 5)]   // твърде малко за header+рамка+интериор
+    [InlineData(4, 80)]  // твърде малко редове (header=3 + top wall + bottom wall)
+    [InlineData(25, 2)]  // твърде малко колони (лява+дясна стена)
+    public void GetFood_Should_Throw_When_NoPlayableSpace(int rows, int cols)
+    {
+        var board = new Coordinates(rows, cols);
+        var snake = new Snake(10, 6);
+        var foodFactory = new FoodFactory();
+
+        // Очакваме фабриката да сигнализира, че няма валидни клетки за храна
+        Assert.ThrowsAny<Exception>(() => foodFactory.GetFood(board, snake.Body));
+    }
+
+    private static HashSet<Coordinates> BuildWalls(Coordinates board, int headerHeight)
+    {
+        var set = new HashSet<Coordinates>();
+
+        int topRow = headerHeight;          // горна стена
+        int bottomRow = board.Row - 1;      // долна стена
+        int leftCol = 0;                    // лява стена
+        int rightCol = board.Col - 1;       // дясна стена
+
+        // Горна/долна хоризонтална стена
+        for (int col = leftCol; col <= rightCol; col++)
+        {
+            set.Add(new Coordinates(topRow, col));
+            set.Add(new Coordinates(bottomRow, col));
+        }
+
+        // Лява/дясна вертикална стена
+        for (int row = topRow; row <= bottomRow; row++)
+        {
+            set.Add(new Coordinates(row, leftCol));
+            set.Add(new Coordinates(row, rightCol));
+        }
+
+        return set;
     }
 }

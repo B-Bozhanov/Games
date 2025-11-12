@@ -23,19 +23,24 @@
         public Food GetFood(Coordinates boardSize, IReadOnlyCollection<Coordinates> snakeBody)
         {
             var foodCoordinates = new Coordinates();
+            var boardStartRows = HeaderHeight + 1;
+            var boardEndRows = boardSize.Row - WallsWidth - WallsWidth;
+            var boardStartCol = WallsWidth;
+            var boardEndCol = boardSize.Col - WallsWidth - WallsWidth;
+
+            if (boardStartRows >= boardEndRows || boardStartCol >= boardEndCol)
+            {
+                throw new InvalidOperationException("Start value canot be greater than end value");
+            }
+
             while (true)
             {
-                int row = this.random.Next(HeaderHeight, boardSize.Row -1);
-                int col = this.random.Next(0, boardSize.Col);
+                int row = this.random.Next(boardStartRows, boardEndRows);
+                int col = this.random.Next(boardStartCol, boardEndCol);
                 foodCoordinates.Row = row;
                 foodCoordinates.Col = col;
-                bool isOnSnake = snakeBody.Any(c => c.Row == row && c.Col == col);
+                bool isOnSnake = snakeBody.Any(c => c == foodCoordinates);
 
-                if (!foodCoordinates.IsInRange(GameHeight, GameWidth))
-                {
-                    Console.WriteLine("Bug");
-                    continue;
-                }
                 if (isOnSnake) continue;
 
                 this.foodLifeTimeSeconds = TimeSpan.FromSeconds(this.random.Next(this.startSeconds, this.endSeconds));
