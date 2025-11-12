@@ -1,24 +1,14 @@
 ﻿namespace SnakeGame.GameObjects
 {
-    public sealed class Food
+    using SnakeGame.GameObjects.Enums;
+
+    public sealed class Food(Coordinates coordinates, TimeSpan lifeTime)
     {
-        private readonly char symbol;
+        public DateTime StartTime { get; set; } = DateTime.UtcNow;
 
-        public Food(Coordinates coordinates, TimeSpan lifeTime)
-        {
-            this.symbol = '@';
-            this.StartTime = DateTime.UtcNow;
-            this.LifeTime = lifeTime; 
-            this.Coordinates = coordinates;
-        }
+        public Coordinates Coordinates { get; set; } = coordinates;
 
-        public Char Symbol => this.symbol;
-
-        public DateTime StartTime { get; set; }
-
-        public Coordinates Coordinates { get; set; }
-
-        public TimeSpan LifeTime { get; set; }
+        public TimeSpan LifeTime { get; set; } = lifeTime;
 
         public bool IsExpired => DateTime.UtcNow - StartTime > LifeTime;
     }

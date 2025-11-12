@@ -1,32 +1,26 @@
 ﻿namespace SnakeGame.Core
 {
     using SnakeGame.GameObjects;
+    using SnakeGame.GameObjects.Enums;
     using SnakeGame.GameObjects.Interfaces;
     using SnakeGame.Input;
     using SnakeGame.Rendering;
 
-    public class GameEngine : IGameScene
+    public class GameEngine(
+        IInputReader inputReader,
+        IGameTime gameTime,
+        IRenderer renderer,
+        IFoodFactory foodFactory,
+        ISnake snake,
+        IGameBoard gameBoard) : IGameScene
     {
 
-        private readonly IInputReader inputReader;
-        private readonly IGameTime gameTime;
-        private readonly IRenderer renderer;
-        private readonly IFoodFactory foodFactory;
-        private readonly ISnake snake;
-
-        public GameEngine(
-            IInputReader inputReader,
-            IGameTime gameTime,
-            IRenderer renderer,
-            IFoodFactory foodFactory,
-            ISnake snake)
-        {
-            this.inputReader = inputReader;
-            this.gameTime = gameTime;
-            this.renderer = renderer;
-            this.foodFactory = foodFactory;
-            this.snake = snake;
-        }
+        private readonly IInputReader inputReader = inputReader;
+        private readonly IGameTime gameTime = gameTime;
+        private readonly IRenderer renderer = renderer;
+        private readonly IFoodFactory foodFactory = foodFactory;
+        private readonly ISnake snake = snake;
+        private readonly IGameBoard gameBoard = gameBoard;
 
         public void Run()
         {
@@ -36,12 +30,12 @@
             var boardSize = new Coordinates(rows, colums);
             var food = this.foodFactory.GetFood(boardSize, snake.Body);
             var obstacle = new Coordinates(500, 500);
-            BaseBoard test = new ConsoleGameBoard(renderer);
-            test.CreateBorder();
-            test.RenderBoard();
+
+            this.gameBoard.CreateBoarder();
+            this.gameBoard.RenderBoard();
 
 
-            renderer.Draw(food.Coordinates, food.Symbol.ToString());
+            this.renderer.Draw(food.Coordinates, food.Coordinates.Symbol.ToString());
 
             var score = 1;
             var currentSpeed = 1;
@@ -63,9 +57,9 @@
                 if (nexHead == food.Coordinates)
                 {
                     this.snake.Eat();
-                    this.renderer.ClearElement(food.Coordinates);
+                    this.gameBoard.RemoveCellType(food.Coordinates);
                     food = foodFactory.GetFood(boardSize, snake.Body);
-                    this.renderer.Draw(food.Coordinates, food.Symbol.ToString());
+                    this.gameBoard.Add(food.Coordinates, CellType.Food);
                     this.gameTime.IncreaseSpeed();
                     currentSpeed++;
                 }
@@ -74,10 +68,11 @@
                 {
                     this.renderer.ClearElement(food.Coordinates);
                     food = this.foodFactory.GetFood(boardSize, snake.Body);
-                    this.renderer.Draw(food.Coordinates, food.Symbol.ToString());
+                    this.renderer.Draw(food.Coordinates, food.Coordinates.Symbol.ToString());
                 }
 
-                this.renderer.Draw(this.snake.Body);
+                this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
+                //this.renderer.Draw(food);
                 if (!this.snake.ShouldEat)
                 {
                     this.renderer.ClearElement(this.snake.GetLastTailPossition);

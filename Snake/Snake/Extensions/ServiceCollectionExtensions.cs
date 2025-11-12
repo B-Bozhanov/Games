@@ -18,6 +18,7 @@
             services.AddScoped<IInputReader, ConsoleInputReader>();
             services.AddScoped<IFoodFactory, FoodFactory>();
             services.AddScoped<IGameScene, GameEngine>();
+            services.AddScoped<IGameBoard, ConsoleGameBoard>();
 
             return services;
         }
