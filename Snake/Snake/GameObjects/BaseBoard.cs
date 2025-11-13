@@ -4,45 +4,30 @@
 
     using SnakeGame.GameObjects.Enums;
     using SnakeGame.GameObjects.Interfaces;
-    using SnakeGame.Rendering;
 
     using static SnakeGame.Common.GlobalConstants.GameConstants;
 
     public abstract class BaseBoard : IGameBoard
     {
-        private readonly List<Coordinates> walls;
-        private readonly IRenderer renderer;
-
         private readonly int topWallRow = HeaderHeight;
         private readonly int bottomWallRow = HeaderHeight + GameHeight + WallsWidth;
         private readonly int leftWallCol = 0;
         private readonly int rightWallCol = GameWidth + WallsWidth;
 
-        protected BaseBoard(IRenderer renderer)
+        protected BaseBoard()
         {
-            this.walls = new List<Coordinates>();
             this.BoardSize = new Coordinates(TotalGameWidthRows, TotalGameWidthCols);
-            this.renderer = renderer;
             this.Board = new CellType[TotalGameWidthRows, TotalGameWidthCols];
-            Console.WriteLine();
         }
 
         public CellType[,] Board { get; private set; }
 
-        public IRenderer Renderer => this.renderer;
-
         public Coordinates BoardSize { get; }
-
-        public IReadOnlyCollection<Coordinates> Walls => this.walls;
-
-        public IReadOnlyCollection<Coordinates> Coordinates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public CellType[,] GetBoard => this.Board;
 
         public void CreateBoard()
         {
-            this.walls.Clear();
-
             this.CreateUpDownSide();
             this.CreateLeftRightSide();
         }
@@ -59,10 +44,7 @@
                 wall1 = this.SetWallSymbol(wall1);
                 wall2 = this.SetWallSymbol(wall2);
 
-                this.AddTwoWallsTOMatrix(wall1, wall2);
-
-                this.walls.Add(wall1);
-                this.walls.Add(wall2);
+                this.AddTwoWalls(wall1, wall2);
             }
         }
 
@@ -76,14 +58,11 @@
                 wall1 = this.SetWallSymbol(wall1);
                 wall2 = this.SetWallSymbol(wall2);
 
-                this.AddTwoWallsTOMatrix(wall1, wall2);
-
-                this.walls.Add(wall1);
-                this.walls.Add(wall2);
+                this.AddTwoWalls(wall1, wall2);
             }
         }
 
-        private void AddTwoWallsTOMatrix(Coordinates coordinates1, Coordinates coordinates2)
+        private void AddTwoWalls(Coordinates coordinates1, Coordinates coordinates2)
         {
             this.Board[coordinates1.Row, coordinates1.Col] = coordinates1.Symbol;
             this.Board[coordinates2.Row, coordinates2.Col] = coordinates2.Symbol;

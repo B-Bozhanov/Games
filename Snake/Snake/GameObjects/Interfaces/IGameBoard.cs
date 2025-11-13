@@ -9,7 +9,5 @@
         public CellType[,] GetBoard {  get; }
 
         public bool SetSettings();
-
-        public IReadOnlyCollection<Coordinates> Coordinates { get; set; }
     }
 }

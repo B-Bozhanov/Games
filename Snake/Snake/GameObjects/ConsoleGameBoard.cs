@@ -3,12 +3,10 @@
     using System;
 
     using SnakeGame.Common;
-    using SnakeGame.Rendering;
 
     public class ConsoleGameBoard : BaseBoard
     {
-        public ConsoleGameBoard(IRenderer renderer)
-            : base(renderer)
+        public ConsoleGameBoard()
         {
             this.SetSettings();
         }

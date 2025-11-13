@@ -13,7 +13,5 @@
         public void RemoveAll();
 
         public Coordinates BoardSize { get; }
-
-        public IReadOnlyCollection<Coordinates> Walls { get; }
     }
 }
