@@ -4,9 +4,7 @@
 
     public interface IGameBoard : IBoard
     {
-        public void CreateBoarder();
-
-        public void RenderBoard();
+        public void CreateBoard();
 
         public CellType[,] GetMatrix {  get; }
 

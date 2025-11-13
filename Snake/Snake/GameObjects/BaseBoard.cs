@@ -26,8 +26,6 @@
             this.Matrix = new CellType[TotalGameWidthRows, TotalGameWidthCols];
         }
 
-
-
         public CellType[,] Matrix { get; private set; }
 
         public IRenderer Renderer => this.renderer;
@@ -40,7 +38,7 @@
 
         public CellType[,] GetMatrix => this.Matrix;
 
-        public void CreateBoarder()
+        public void CreateBoard()
         {
             this.walls.Clear();
 
@@ -49,8 +47,6 @@
         }
 
         public abstract bool SetSettings();
-
-        public abstract void RenderBoard();
 
         private void CreateUpDownSide()
         {

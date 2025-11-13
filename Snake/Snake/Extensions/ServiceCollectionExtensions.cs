@@ -19,6 +19,7 @@
             services.AddScoped<IFoodFactory, FoodFactory>();
             services.AddScoped<IGameScene, GameEngine>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
+            services.AddScoped<ITheme<char>, ConsoleTheme>();
 
             return services;
         }

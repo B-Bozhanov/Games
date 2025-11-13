@@ -13,11 +13,6 @@
             this.SetSettings();
         }
 
-        public override void RenderBoard()
-        {
-            this.Renderer.Draw(this.Matrix);
-        }
-
         public override bool SetSettings()
         {
             Console.CursorVisible = false;

@@ -1,61 +1,11 @@
 ﻿namespace SnakeGame.Rendering
 {
-    using System.Collections.Generic;
-
-    using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Enums;
+    using SnakeGame.GameObjects.Interfaces;
 
-    public class ConsoleRenderer : IRenderer
+    public class ConsoleRenderer(ITheme<char> theme) : IRenderer
     {
-        private readonly char wallsLeftAndRight = '║';
-        private readonly char wallsTopAndBottom = '═';
-        private readonly char wallTopLeft = '╔';
-        private readonly char wallTopRight = '╗';
-        private readonly char wallBottomRight = '╝';
-        private readonly char wallBottomLeft = '╚';
-        private readonly char snakeBody = '*';
-        private readonly char foodSymbol = '@';
-
-        public void ClearAll() => Console.Clear();
-
-        public void ClearElement(Coordinates element)
-        {
-            Console.SetCursorPosition(element.Col, element.Row);
-            Console.Write(' ');
-        }
-
-        public char Map(CellType cell) => cell switch
-        {
-            CellType.WallTopLeft => this.wallTopLeft,
-            CellType.WallTopRight => this.wallTopRight,
-            CellType.WallBottomLeft => this.wallBottomLeft,
-            CellType.WallBottomRight => this.wallBottomRight,
-            CellType.WallsTopAndBottom => this.wallsTopAndBottom,
-            CellType.WallsLeftAndRight => this.wallsLeftAndRight,
-            CellType.SnakeBody => this.snakeBody,
-            CellType.Food => this.foodSymbol,
-            _ => ' ',
-        };
-
-        public void Draw(Coordinates possition, string symbol, Color color = Color.None)
-        {
-            Console.SetCursorPosition(possition.Col, possition.Row);
-            Console.Write(symbol);
-        }
-
-        public void Draw(IReadOnlyCollection<Coordinates> coordinates)
-        {
-            foreach (var item in coordinates)
-            {
-                Console.SetCursorPosition(item.Col, item.Row);
-                Console.Write('*');
-            }
-        }
-
-        public void Draw(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None)
-        {
-            throw new NotImplementedException();
-        }
+        private readonly ITheme<char> theme = theme;
 
         public void Draw(CellType[,] prev, CellType[,] curr)
         {
@@ -71,7 +21,7 @@
                         continue;
                     }
                     var cell = curr[r, c];
-                    var symbol = this.Map(cell);
+                    var symbol = this.theme.Map(cell);
 
                     Console.SetCursorPosition(c, r);
                     Console.Write(symbol);
@@ -87,7 +37,7 @@
                 {
                     var cell = matrix[row, col];
 
-                    var symbol = this.Map(cell);
+                    var symbol = this.theme.Map(cell);
 
                     Console.SetCursorPosition(col, row);
                     Console.Write(symbol);

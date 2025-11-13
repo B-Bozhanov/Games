@@ -31,17 +31,17 @@
             var food = this.foodFactory.GetFood(boardSize, snake.Body);
             var obstacle = new Coordinates(500, 500);
 
-            this.gameBoard.CreateBoarder();
+            this.gameBoard.CreateBoard();
 
 
             this.gameBoard.Add(food.Coordinates, CellType.Food);
             this.gameBoard.Add(snake.Body, CellType.SnakeBody);
 
 
-            var score = 1;
             var currentSpeed = 1;
             var prevScene = (CellType[,])this.gameBoard.GetMatrix.Clone();
-            this.gameBoard.RenderBoard();
+            this.renderer.Draw(prevScene);
+
             while (true)
             {
                 var direction = this.inputReader.GetInput();
@@ -73,6 +73,7 @@
                 }
 
                 this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
+
                 if (!this.snake.ShouldEat)
                 {
                     this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
