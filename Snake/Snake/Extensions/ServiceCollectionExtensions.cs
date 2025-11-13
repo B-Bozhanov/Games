@@ -7,6 +7,7 @@
     using SnakeGame.GameObjects.Interfaces;
     using SnakeGame.Input;
     using SnakeGame.Rendering;
+    using SnakeGame.Scenes;
 
     public static class ServiceCollectionExtensions
     {
@@ -17,9 +18,13 @@
             services.AddScoped<IRenderer, ConsoleRenderer>();
             services.AddScoped<IInputReader, ConsoleInputReader>();
             services.AddScoped<IFoodFactory, FoodFactory>();
-            services.AddScoped<IGameScene, GameEngine>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char>, ConsoleTheme>();
+
+            services.AddKeyedScoped<IGameScene, GameEngine>("gameEngine");
+            services.AddKeyedScoped<IGameScene, GameplayScene>("gamePlay");
+            services.AddKeyedScoped<IGameScene, MainMenuScene>("menu");
+            services.AddKeyedScoped<IGameScene, PauseScene>("pause");
 
             return services;
         }

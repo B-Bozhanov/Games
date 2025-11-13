@@ -23,10 +23,11 @@
             this.walls = new List<Coordinates>();
             this.BoardSize = new Coordinates(TotalGameWidthRows, TotalGameWidthCols);
             this.renderer = renderer;
-            this.Matrix = new CellType[TotalGameWidthRows, TotalGameWidthCols];
+            this.Board = new CellType[TotalGameWidthRows, TotalGameWidthCols];
+            Console.WriteLine();
         }
 
-        public CellType[,] Matrix { get; private set; }
+        public CellType[,] Board { get; private set; }
 
         public IRenderer Renderer => this.renderer;
 
@@ -36,7 +37,7 @@
 
         public IReadOnlyCollection<Coordinates> Coordinates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-        public CellType[,] GetMatrix => this.Matrix;
+        public CellType[,] GetBoard => this.Board;
 
         public void CreateBoard()
         {
@@ -84,8 +85,8 @@
 
         private void AddTwoWallsTOMatrix(Coordinates coordinates1, Coordinates coordinates2)
         {
-            this.Matrix[coordinates1.Row, coordinates1.Col] = coordinates1.Symbol;
-            this.Matrix[coordinates2.Row, coordinates2.Col] = coordinates2.Symbol;
+            this.Board[coordinates1.Row, coordinates1.Col] = coordinates1.Symbol;
+            this.Board[coordinates2.Row, coordinates2.Col] = coordinates2.Symbol;
         }
 
         private CellType GetBorderSymbol(Coordinates coordinates)
@@ -113,32 +114,26 @@
         public void Add(Coordinates coordinates, CellType cellType = CellType.None)
         {
             // TODO: IsValid
-            this.Matrix[coordinates.Row, coordinates.Col] = cellType;
+            this.Board[coordinates.Row, coordinates.Col] = cellType;
         }
 
         public void Add(IReadOnlyCollection<Coordinates> coordinates, CellType cellType = CellType.None)
         {
             foreach (var coordinate in coordinates)
             {
-                this.Matrix[coordinate.Row, coordinate.Col] = cellType;
+                this.Board[coordinate.Row, coordinate.Col] = cellType;
             }
         }
 
         public void RemoveCellType(Coordinates coordinates)
         {
             // TODO: IsValid
-            this.Matrix[coordinates.Row, coordinates.Col] = CellType.None;
+            this.Board[coordinates.Row, coordinates.Col] = CellType.None;
         }
 
         public void RemoveAll()
         {
-            for (int row = 0; row < this.Matrix.GetLength(0); row++)
-            {
-                for (int col = 0; col < this.Matrix.GetLength(1); col++)
-                {
-                    this.Matrix[row, col] = CellType.None;
-                }
-            }
+            Array.Clear(this.Board, 0, this.Board.Length);
         }
     }
 }

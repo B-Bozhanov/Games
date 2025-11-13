@@ -6,7 +6,7 @@
     {
         public void CreateBoard();
 
-        public CellType[,] GetMatrix {  get; }
+        public CellType[,] GetBoard {  get; }
 
         public bool SetSettings();
 

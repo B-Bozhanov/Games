@@ -30,7 +30,7 @@ public record struct Coordinates(int Row = 0, int Col = 0)
 
     public readonly bool IsInRange(int height, int width) =>
            this.Row > GlobalConstants.GameConstants.HeaderHeight
-        && this.Row < height
+        && this.Row < height -1
         && this.Col > 0
-        && this.Col < width;
+        && this.Col < width -1;
 }
