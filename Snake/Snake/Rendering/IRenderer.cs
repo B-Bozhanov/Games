@@ -16,5 +16,7 @@
         public void Draw(IReadOnlyCollection<Coordinates> coordinates);
 
         public void Draw(IReadOnlyCollection<Coordinates> coordinates, Color color = Color.None);
+
+        public void Draw(CellType[,] prev, CellType[,] curr);
     }
 }

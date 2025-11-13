@@ -8,6 +8,8 @@
 
         public void RenderBoard();
 
+        public CellType[,] GetMatrix {  get; }
+
         public bool SetSettings();
 
         public IReadOnlyCollection<Coordinates> Coordinates { get; set; }

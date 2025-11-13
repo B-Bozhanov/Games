@@ -32,17 +32,18 @@
             var obstacle = new Coordinates(500, 500);
 
             this.gameBoard.CreateBoarder();
-            this.gameBoard.RenderBoard();
 
 
-            this.renderer.Draw(food.Coordinates, food.Coordinates.Symbol.ToString());
+            this.gameBoard.Add(food.Coordinates, CellType.Food);
+            this.gameBoard.Add(snake.Body, CellType.SnakeBody);
+
 
             var score = 1;
             var currentSpeed = 1;
+            var prevScene = (CellType[,])this.gameBoard.GetMatrix.Clone();
+            this.gameBoard.RenderBoard();
             while (true)
             {
-                Console.SetCursorPosition(50, 1);
-                Console.Write($"Speed -- {currentSpeed}");
                 var direction = this.inputReader.GetInput();
                 var nexHead = snake.GetNextHeadPossition(direction);
 
@@ -66,18 +67,21 @@
 
                 if (food.IsExpired)
                 {
-                    this.renderer.ClearElement(food.Coordinates);
+                    this.gameBoard.RemoveCellType(food.Coordinates);
                     food = this.foodFactory.GetFood(boardSize, snake.Body);
-                    this.renderer.Draw(food.Coordinates, food.Coordinates.Symbol.ToString());
+                    this.gameBoard.Add(food.Coordinates, CellType.Food);
                 }
 
                 this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
-                //this.renderer.Draw(food);
                 if (!this.snake.ShouldEat)
                 {
-                    this.renderer.ClearElement(this.snake.GetLastTailPossition);
+                    this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
                 }
 
+
+                var currentScene = this.gameBoard.GetMatrix;
+                this.renderer.Draw(prevScene, currentScene);
+                Array.Copy(currentScene, prevScene, prevScene.Length); ; 
                 this.gameTime.Tick();
             }
         }

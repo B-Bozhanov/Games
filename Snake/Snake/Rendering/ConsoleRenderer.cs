@@ -57,6 +57,28 @@
             throw new NotImplementedException();
         }
 
+        public void Draw(CellType[,] prev, CellType[,] curr)
+        {
+            var rows = curr.GetLength(0);
+            var cols = curr.GetLength(1);
+
+            for (int r = 0; r < rows; r++)
+            {
+                for (int c = 0; c < cols; c++)
+                {
+                    if (curr[r, c] == prev[r, c])
+                    {
+                        continue;
+                    }
+                    var cell = curr[r, c];
+                    var symbol = this.Map(cell);
+
+                    Console.SetCursorPosition(c, r);
+                    Console.Write(symbol);
+                }
+            }
+        }
+
         public void Draw(CellType[,] matrix)
         {
             for (int row = 0; row < matrix.GetLength(0); row++)

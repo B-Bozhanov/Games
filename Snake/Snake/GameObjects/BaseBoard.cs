@@ -38,6 +38,8 @@
 
         public IReadOnlyCollection<Coordinates> Coordinates { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+        public CellType[,] GetMatrix => this.Matrix;
+
         public void CreateBoarder()
         {
             this.walls.Clear();
