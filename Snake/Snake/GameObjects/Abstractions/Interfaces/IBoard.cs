@@ -1,4 +1,4 @@
-﻿namespace SnakeGame.GameObjects.Interfaces
+﻿namespace SnakeGame.GameObjects.Abstractions.Interfaces
 {
     using SnakeGame.GameObjects.Enums;
 
@@ -12,6 +12,6 @@
 
         public void RemoveAll();
 
-        public Coordinates BoardSize { get; }
+        public IBoardConfig BoardConfig { get; }
     }
 }

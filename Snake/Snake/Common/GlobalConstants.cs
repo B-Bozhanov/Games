@@ -6,15 +6,11 @@
     {
         public static class GameConstants
         {
-            public const int GameDefaultFps = 10;
-            public const int GameWidth = 120;
-            public const int GameHeight = 25;
+            public const int GameDefaultFps = 11;
+            public const int PlayableBoardWidth = 120;
+            public const int PlayableBoardHeight = 25;
             public const int HeaderHeight = 3;
             public const int WallsWidth = 1;
-            public const int GameStartRow = HeaderHeight + WallsWidth;
-            public const int GameStartCol = WallsWidth;
-            public const int TotalGameWidthCols = GameWidth + WallsWidth + WallsWidth;
-            public const int TotalGameWidthRows = HeaderHeight + WallsWidth + GameHeight + WallsWidth;
         }
 
         public static class SnakeConstants

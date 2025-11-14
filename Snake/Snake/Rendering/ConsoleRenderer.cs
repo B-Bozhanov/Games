@@ -1,7 +1,7 @@
 ﻿namespace SnakeGame.Rendering
 {
+    using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
-    using SnakeGame.GameObjects.Interfaces;
 
     public class ConsoleRenderer(ITheme<char> theme) : IRenderer
     {

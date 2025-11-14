@@ -1,6 +1,11 @@
 ﻿namespace SnakeGame.GameObjects
 {
-    public class Obstacle
+    using System;
+
+    using SnakeGame.GameObjects.Abstractions.Base;
+
+    public class Obstacle(Coordinates coordinates, TimeSpan lifeTime) 
+        : BaseItem(coordinates, lifeTime)
     {
     }
 }

@@ -3,10 +3,13 @@
     using System;
 
     using SnakeGame.Common;
+    using SnakeGame.GameObjects.Abstractions.Base;
+    using SnakeGame.GameObjects.Abstractions.Interfaces;
 
     public class ConsoleGameBoard : BaseBoard
     {
-        public ConsoleGameBoard()
+        public ConsoleGameBoard(IBoardConfig boardConfig)
+            : base(boardConfig) 
         {
             this.SetSettings();
         }
@@ -16,8 +19,8 @@
             Console.CursorVisible = false;
             Console.OutputEncoding = System.Text.Encoding.UTF8;
 
-            int totalRows = this.BoardSize.Row;
-            int totalCols = this.BoardSize.Col;
+            int totalRows = this.BoardConfig.TotalRows;
+            int totalCols = this.BoardConfig.TotalCols;
 
             totalCols = Math.Min(totalCols, Console.LargestWindowWidth);
             totalRows = Math.Min(totalRows, Console.LargestWindowHeight);

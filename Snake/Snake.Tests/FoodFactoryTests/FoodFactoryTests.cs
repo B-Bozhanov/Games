@@ -25,7 +25,7 @@
             // Act + Assert
             for (int i = 0; i < 100; i++)
             {
-                var food = factory.GetFood(boardSize, snakeBody);
+                var food = factory.CreateFood(boardSize, snakeBody);
 
                 Assert.DoesNotContain(food.Coordinates, snakeBody);
                 Assert.InRange(food.Coordinates.Row, 0, boardSize.Row - 1);

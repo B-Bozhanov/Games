@@ -4,10 +4,12 @@
 
     using SnakeGame.Core;
     using SnakeGame.GameObjects;
-    using SnakeGame.GameObjects.Interfaces;
+    using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.Input;
     using SnakeGame.Rendering;
     using SnakeGame.Scenes;
+
+    using SnakeGame.Common;
 
     public static class ServiceCollectionExtensions
     {
@@ -20,6 +22,11 @@
             services.AddScoped<IFoodFactory, FoodFactory>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char>, ConsoleTheme>();
+            services.AddSingleton<IBoardConfig>(_ => new BoardConfig(
+                GlobalConstants.GameConstants.PlayableBoardWidth,
+                GlobalConstants.GameConstants.PlayableBoardHeight,
+                GlobalConstants.GameConstants.HeaderHeight,
+                GlobalConstants.GameConstants.WallsWidth));
 
             services.AddKeyedScoped<IGameScene, GameEngine>("gameEngine");
             services.AddKeyedScoped<IGameScene, GameplayScene>("gamePlay");

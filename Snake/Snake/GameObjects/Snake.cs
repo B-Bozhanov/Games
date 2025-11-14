@@ -1,7 +1,7 @@
 ﻿namespace SnakeGame.GameObjects;
 
+using SnakeGame.GameObjects.Abstractions.Interfaces;
 using SnakeGame.GameObjects.Enums;
-using SnakeGame.GameObjects.Interfaces;
 
 using static SnakeGame.Common.GlobalConstants;
 
@@ -55,10 +55,10 @@ public sealed class Snake : ISnake
         this.shouldEat = false;
     }
 
-    public bool WillDie(Coordinates boardSize, Coordinates obstacle, Direction direction)
+    public bool WillDie(IBoardConfig boardConfig, Coordinates obstacle, Direction direction)
              => this.WillCollideWithSelf(this.GetNextHeadPossition(direction))
              || this.WillHitObstacle(direction, obstacle)
-             || !this.GetNextHeadPossition(direction).IsInRange(boardSize.Row, boardSize.Col);
+             || !this.GetNextHeadPossition(direction).IsInRange(boardConfig.PlayableHeight, boardConfig.PlayableWidth);
 
     private Direction ChangeDirection(Direction newDirection)
     {

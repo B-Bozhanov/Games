@@ -20,7 +20,7 @@ public class FoodTests
         var food = new Food(coords, lifetime);
 
         // Assert
-        Assert.Equal('@', food.Symbol);
+        Assert.Equal(CellType.Food, food.Coordinates.Symbol);
         Assert.Equal(coords, food.Coordinates);
         Assert.Equal(lifetime, food.LifeTime);
         Assert.True(food.StartTime <= DateTime.UtcNow);
@@ -93,7 +93,7 @@ public class FoodTests
         // Act + Assert (многократно пробване, тъй като е RNG)
         for (int i = 0; i < 1000000; i++)
         {
-            var food = foodFactory.GetFood(board, snake.Body);
+            var food = foodFactory.CreateFood(board, snake.Body);
             var c = food.Coordinates;
 
             // 1) В рамките на борда (дефензивни проверки)
@@ -126,7 +126,7 @@ public class FoodTests
         var foodFactory = new FoodFactory();
 
         // Очакваме фабриката да сигнализира, че няма валидни клетки за храна
-        Assert.ThrowsAny<Exception>(() => foodFactory.GetFood(board, snake.Body));
+        Assert.ThrowsAny<Exception>(() => foodFactory.CreateFood(board, snake.Body));
     }
 
     private static HashSet<Coordinates> BuildWalls(Coordinates board, int headerHeight)

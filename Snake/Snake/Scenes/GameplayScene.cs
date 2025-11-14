@@ -2,8 +2,8 @@
 {
     using SnakeGame.Core;
     using SnakeGame.GameObjects;
+    using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
-    using SnakeGame.GameObjects.Interfaces;
     using SnakeGame.Input;
     using SnakeGame.Rendering;
 
@@ -25,11 +25,7 @@
 
         public void Run()
         {
-            Console.CursorVisible = false;
-            var colums = Console.WindowWidth;
-            var rows = Console.WindowHeight;
-            var boardSize = new Coordinates(rows, colums);
-            var food = this.foodFactory.GetFood(boardSize, snake.Body);
+            var food = this.foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
             var obstacle = new Coordinates(500, 500);
 
             this.gameBoard.CreateBoard();
@@ -48,7 +44,7 @@
                 var direction = this.inputReader.GetInput();
                 var nexHead = snake.GetNextHeadPossition(direction);
 
-                if (snake.WillDie(boardSize, obstacle, direction))
+                if (snake.WillDie(this.gameBoard.BoardConfig, obstacle, direction))
                 {
                     Console.Write("Game Over");
                     break;
@@ -60,7 +56,7 @@
                 {
                     this.snake.Eat();
                     this.gameBoard.RemoveCellType(food.Coordinates);
-                    food = foodFactory.GetFood(boardSize, snake.Body);
+                    food = foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
                     this.gameBoard.Add(food.Coordinates, CellType.Food);
                     this.gameTime.IncreaseSpeed();
                     currentSpeed++;
@@ -69,7 +65,7 @@
                 if (food.IsExpired)
                 {
                     this.gameBoard.RemoveCellType(food.Coordinates);
-                    food = this.foodFactory.GetFood(boardSize, snake.Body);
+                    food = this.foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
                     this.gameBoard.Add(food.Coordinates, CellType.Food);
                 }
 
@@ -79,7 +75,6 @@
                 {
                     this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
                 }
-
 
                 var curr = this.gameBoard.GetBoard;
                 this.renderer.Draw(prev, curr);

@@ -1,4 +1,4 @@
-﻿namespace SnakeGame.GameObjects.Interfaces
+﻿namespace SnakeGame.GameObjects.Abstractions.Interfaces
 {
     using SnakeGame.GameObjects.Enums;
 
@@ -22,6 +22,6 @@
 
         public void Move(Direction direction);
 
-        public bool WillDie(Coordinates boardSize, Coordinates obstacle, Direction direction);
+        public bool WillDie(IBoardConfig boardConfig, Coordinates obstacle, Direction direction);
     }
 }
