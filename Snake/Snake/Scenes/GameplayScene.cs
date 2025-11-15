@@ -24,6 +24,7 @@
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
+
         // blockList keeps track of occupied cells (snake, food, obstacles).
         // Used by factories to guarantee valid spawn positions without scanning the board.
         private readonly bool[,] blockList;

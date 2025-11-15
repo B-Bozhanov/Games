@@ -20,5 +20,7 @@
         WallTopRight,
         WallBottomLeft,
         WallBottomRight,
+        WallMiddleLeft,
+        WallMiddleRight,
     }
 }

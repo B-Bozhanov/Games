@@ -12,7 +12,8 @@
         private readonly int bottomWallRow = HeaderHeight + PlayableBoardHeight + WallsWidth;
         private readonly int leftWallCol = 0;
         private readonly int rightWallCol = PlayableBoardWidth + WallsWidth;
-        private readonly int topWallRow = HeaderHeight;
+        private readonly int middleTopWallRow = HeaderHeight;
+        private readonly int topWallRow = 0;
 
         protected BaseBoard(IBoardConfig boardConfig)
         {
@@ -55,13 +56,40 @@
 
         public void CreateBoard()
         {
+            this.CreateHeader();
             this.CreateUpDownSide();
             this.CreateLeftRightSide();
         }
 
+        private void CreateHeader()
+        {
+            // Create top side
+            for (int col = WallsWidth; col < this.rightWallCol; col++)
+            {
+                var wall = new Coordinates(topWallRow, col);
+
+                wall = this.SetWallSymbol(wall);
+
+                this.Add(wall, wall.Symbol);
+            }
+
+
+            // Create left and right sides
+            for (int row = this.topWallRow; row < HeaderHeight; row++)
+            {
+                var leftWall = new Coordinates(row, this.leftWallCol);
+                var rightWall = new Coordinates(row, this.rightWallCol);
+
+                leftWall = this.SetWallSymbol(leftWall);
+                rightWall = this.SetWallSymbol(rightWall);
+
+                this.AddTwoWalls(leftWall, rightWall);
+            }
+        }
+
         private void CreateLeftRightSide()
         {
-            for (int row = this.topWallRow; row < this.bottomWallRow; row++)
+            for (int row = this.middleTopWallRow; row < this.bottomWallRow; row++)
             {
                 var wall1 = new Coordinates(row, this.leftWallCol);
                 var wall2 = new Coordinates(row, this.rightWallCol);
@@ -77,7 +105,7 @@
         {
             for (int col = this.leftWallCol; col <= this.rightWallCol; col++)
             {
-                var wall1 = new Coordinates(this.topWallRow, col);
+                var wall1 = new Coordinates(this.middleTopWallRow, col);
                 var wall2 = new Coordinates(this.bottomWallRow, col);
 
                 wall1 = this.SetWallSymbol(wall1);
@@ -95,16 +123,19 @@
 
         private CellType GetBorderSymbol(Coordinates coordinates)
         {
-            bool isTop = coordinates.Row == this.topWallRow;
+            bool isMiddleTop = coordinates.Row == this.middleTopWallRow;
             bool isBottom = coordinates.Row == this.bottomWallRow;
             bool isLeft = coordinates.Col == this.leftWallCol;
             bool isRight = coordinates.Col == this.rightWallCol;
+            bool isTop = coordinates.Row == this.topWallRow;
 
-            if (isTop && isLeft) return CellType.WallTopLeft;
             if (isTop && isRight) return CellType.WallTopRight;
+            if (isTop && isLeft) return CellType.WallTopLeft;
+            if (isMiddleTop && isLeft) return CellType.WallMiddleLeft;
+            if (isMiddleTop && isRight) return CellType.WallMiddleRight;
             if (isBottom && isLeft) return CellType.WallBottomLeft;
             if (isBottom && isRight) return CellType.WallBottomRight;
-            if (isTop || isBottom) return CellType.WallsTopAndBottom;
+            if (isMiddleTop || isBottom || isTop) return CellType.WallsTopAndBottom;
 
             return CellType.WallsLeftAndRight;
         }
