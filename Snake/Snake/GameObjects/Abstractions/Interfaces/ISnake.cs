@@ -22,6 +22,6 @@
 
         public void Move(Direction direction);
 
-        public bool WillDie(IBoardConfig boardConfig, Coordinates obstacle, Direction direction);
+        public bool WillCollideWithSelf(Coordinates nextHead);
     }
 }

@@ -1,73 +1,87 @@
 ﻿namespace SnakeGame.Scenes
 {
+    using System.Collections.Generic;
+
     using SnakeGame.Core;
+    using SnakeGame.Extensions;
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
     using SnakeGame.Input;
     using SnakeGame.Rendering;
 
-    public class GameplayScene(
-        IInputReader inputReader, 
-        IGameTime gameTime, 
-        IRenderer renderer,
-        IFoodFactory foodFactory, 
-        ISnake snake, 
-        IGameBoard gameBoard) : IGameScene
+    public class GameplayScene : IGameScene
     {
+        private readonly ISnake snake;
+        private readonly IRenderer renderer;
+        private readonly IObjectFactory objectFactory;
+        private readonly int obstaclesCount = 3;
+        private readonly IInputReader inputReader;
+        private readonly IGameTime gameTime;
+        private readonly IGameBoard gameBoard;
+        private readonly bool[,] blockList;
+        private  CellType[,] prevScene;
+        private  CellType[,] currScene;
+        private int currentSpeed = 1;
+        private IDictionary<Coordinates, Obstacle> obstacles;
 
-        private readonly IInputReader inputReader = inputReader;
-        private readonly IGameTime gameTime = gameTime;
-        private readonly IRenderer renderer = renderer;
-        private readonly IFoodFactory foodFactory = foodFactory;
-        private readonly ISnake snake = snake;
-        private readonly IGameBoard gameBoard = gameBoard;
+        public GameplayScene(
+                IInputReader inputReader,
+                IGameTime gameTime,
+                IRenderer renderer,
+                IObjectFactory objectFactory,
+                ISnake snake,
+                IGameBoard gameBoard)
+        {
+            this.inputReader = inputReader;
+            this.gameTime = gameTime;
+            this.renderer = renderer;
+            this.objectFactory = objectFactory;
+            this.snake = snake;
+            this.gameBoard = gameBoard;
+
+            var rows = this.gameBoard.BoardConfig.TotalRows;
+            var cols = this.gameBoard.BoardConfig.TotalCols;
+            this.blockList = new bool[rows, cols];
+            this.prevScene = new CellType[rows, cols];
+            this.currScene = new CellType[rows, cols];
+            this.obstacles = new Dictionary<Coordinates, Obstacle>();
+        }
 
         public void Run()
         {
-            var food = this.foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
-            var obstacle = new Coordinates(500, 500);
+            var food = this.InitialGame();
 
-            this.gameBoard.CreateBoard();
+            this.prevScene = (CellType[,])this.gameBoard.GetBoard.Clone();
 
-
-            this.gameBoard.Add(food.Coordinates, CellType.Food);
-            this.gameBoard.Add(snake.Body, CellType.SnakeBody);
-
-
-            var currentSpeed = 1;
-            var prev = (CellType[,])this.gameBoard.GetBoard.Clone();
-            this.renderer.Draw(prev);
+            this.renderer.Draw(prevScene);
 
             while (true)
             {
                 var direction = this.inputReader.GetInput();
                 var nexHead = snake.GetNextHeadPossition(direction);
 
-                if (snake.WillDie(this.gameBoard.BoardConfig, obstacle, direction))
+                if (this.WillDie(nexHead) || snake.WillCollideWithSelf(nexHead))
                 {
                     Console.Write("Game Over");
                     break;
                 }
 
-                this.snake.Move(direction);
+                this.UpdateSnake(direction);
 
-                if (nexHead == food.Coordinates)
+                if (nexHead == food!.Coordinates)
                 {
-                    this.snake.Eat();
-                    this.gameBoard.RemoveCellType(food.Coordinates);
-                    food = foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
-                    this.gameBoard.Add(food.Coordinates, CellType.Food);
+                    food = this.HandleFoodEaten(food);
                     this.gameTime.IncreaseSpeed();
                     currentSpeed++;
                 }
 
                 if (food.IsExpired)
                 {
-                    this.gameBoard.RemoveCellType(food.Coordinates);
-                    food = this.foodFactory.CreateFood(this.gameBoard.BoardConfig, snake.Body);
-                    this.gameBoard.Add(food.Coordinates, CellType.Food);
+                    food = this.UpdateFood(food);
                 }
+
+                this.UpdateObstacles();
 
                 this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
 
@@ -76,12 +90,126 @@
                     this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
                 }
 
-                var curr = this.gameBoard.GetBoard;
-                this.renderer.Draw(prev, curr);
+                this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
+                this.renderer.Draw(prevScene, currScene);
 
-                Array.Copy(curr, prev, prev.Length);
+                (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
                 this.gameTime.Tick();
             }
         }
+
+        private void Block(Coordinates coordinates)
+            => this.blockList[coordinates.Row, coordinates.Col] = true;
+
+        private void Block(IReadOnlyCollection<Coordinates> coordinates)
+        {
+            foreach (var c in coordinates)
+            {
+                this.blockList[c.Row, c.Col] = true;
+            }
+        }
+
+        private Food HandleFoodEaten(Food oldFood)
+        {
+            this.snake.Eat();
+            return this.UpdateFood(oldFood);
+        }
+
+        private Food InitialGame()
+        {
+            this.gameBoard.CreateBoard();
+
+            this.Block(snake.Body);
+
+            var food = this.objectFactory.CreateFood(
+                this.gameBoard.BoardConfig,
+                this.blockList);
+            this.Block(food.Coordinates);
+
+            this.obstacles = this.objectFactory.CreateObstacles(
+                this.obstaclesCount,
+                this.gameBoard.BoardConfig,
+                this.blockList);
+
+            var obsCoordinates = this.obstacles.Keys as IReadOnlyCollection<Coordinates>;
+            this.Block(obsCoordinates!);
+
+            this.gameBoard.Add(food.Coordinates, CellType.Food);
+            this.gameBoard.Add(snake.Body, CellType.SnakeBody);
+            this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
+
+            return food;
+        }
+
+        private bool IsBlocked(Coordinates coordinates)
+            => this.blockList[coordinates.Row, coordinates.Col];
+
+        private void UnBlock(Coordinates coordinates)
+                    => this.blockList[coordinates.Row, coordinates.Col] = false;
+
+        private void UnBlock(IReadOnlyCollection<Coordinates> coordinates)
+        {
+            foreach (var c in coordinates)
+            {
+                this.blockList[c.Row, c.Col] = false;
+            }
+        }
+
+        private Food UpdateFood(Food oldFood)
+        {
+            this.gameBoard.RemoveCellType(oldFood.Coordinates);
+            this.UnBlock(oldFood.Coordinates);
+
+            var newFood = this.objectFactory.CreateFood(this.gameBoard.BoardConfig, blockList);
+            this.gameBoard.Add(newFood.Coordinates, CellType.Food);
+            this.Block(newFood.Coordinates);
+
+            return newFood;
+        }
+
+        private void UpdateObstacles()
+        {
+            var expiredKeys = new List<Coordinates>();
+
+            foreach (var o in this.obstacles)
+            {
+                if (o.Value.IsExpired)
+                {
+                    this.gameBoard.RemoveCellType(o.Key);
+                    this.UnBlock(o.Key);
+                    expiredKeys.Add(o.Key);
+                }
+            }
+
+            if (expiredKeys.Count == 0) return;
+
+            this.obstacles.RemoveRange(expiredKeys);
+
+            var newObstacles = this.objectFactory.CreateObstacles(
+                expiredKeys.Count,
+                this.gameBoard.BoardConfig,
+                this.blockList);
+
+            foreach (var kvp in newObstacles)
+            {
+                this.obstacles.Add(kvp);
+                this.Block(kvp.Key);
+                this.gameBoard.Add(kvp.Key, CellType.Obstacle);
+            }
+        }
+
+        private void UpdateSnake(Direction direction)
+        {
+            this.UnBlock(this.snake.Body);
+            this.snake.Move(direction);
+            this.Block(this.snake.Body);
+        }
+
+        private bool WillDie(Coordinates nextHead)
+                 => this.WillHitObstacle(nextHead)
+                 || !nextHead.IsInRange(this.gameBoard.BoardConfig.TotalRows, this.gameBoard.BoardConfig.TotalCols);
+
+        private bool WillHitObstacle(Coordinates nextHead)
+            => this.obstacles.ContainsKey(key: nextHead);
     }
 }

@@ -3,9 +3,9 @@
     using SnakeGame.GameObjects.Abstractions.Interfaces;
 
     public class BoardConfig(
-        int playableWidth, 
-        int playableHeight, 
-        int headerHeight, 
+        int playableWidth,
+        int playableHeight,
+        int headerHeight,
         int wallsWidth) : IBoardConfig
     {
         public int PlayableWidth { get; } = playableWidth;

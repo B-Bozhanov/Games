@@ -19,7 +19,7 @@
             services.AddScoped<IGameTime, GameTime>();
             services.AddScoped<IRenderer, ConsoleRenderer>();
             services.AddScoped<IInputReader, ConsoleInputReader>();
-            services.AddScoped<IFoodFactory, FoodFactory>();
+            services.AddScoped<IObjectFactory, BaseObjectFactory>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char>, ConsoleTheme>();
             services.AddSingleton<IBoardConfig>(_ => new BoardConfig(

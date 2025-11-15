@@ -55,11 +55,6 @@ public sealed class Snake : ISnake
         this.shouldEat = false;
     }
 
-    public bool WillDie(IBoardConfig boardConfig, Coordinates obstacle, Direction direction)
-             => this.WillCollideWithSelf(this.GetNextHeadPossition(direction))
-             || this.WillHitObstacle(direction, obstacle)
-             || !this.GetNextHeadPossition(direction).IsInRange(boardConfig.PlayableHeight, boardConfig.PlayableWidth);
-
     private Direction ChangeDirection(Direction newDirection)
     {
         if (newDirection == Direction.None || IsOppositeDirection(newDirection))
@@ -89,7 +84,7 @@ public sealed class Snake : ISnake
         (this.CurrentDirection == Direction.Left && newDirection == Direction.Right) ||
         (this.CurrentDirection == Direction.Right && newDirection == Direction.Left);
 
-    private bool WillCollideWithSelf(Coordinates nextHead)
+    public bool WillCollideWithSelf(Coordinates nextHead)
     {
         if (!this.shouldEat && nextHead == this.GetCurrentTailPossition)
         {
@@ -98,7 +93,4 @@ public sealed class Snake : ISnake
 
         return this.body.Contains(nextHead);
     }
-
-    private bool WillHitObstacle(Direction direction, Coordinates obstacle)
-        => this.GetNextHeadPossition(direction) == obstacle;
 }

@@ -13,6 +13,7 @@
         private readonly char wallBottomLeft = '╚';
         private readonly char snakeBody = '*';
         private readonly char foodSymbol = '@';
+        private readonly char obstacleSymbol = '=';
 
         public char Map(CellType cellType) => cellType switch
         {
@@ -23,6 +24,7 @@
             CellType.WallsTopAndBottom => this.wallsTopAndBottom,
             CellType.WallsLeftAndRight => this.wallsLeftAndRight,
             CellType.SnakeBody => this.snakeBody,
+            CellType.Obstacle => this.obstacleSymbol,
             CellType.Food => this.foodSymbol,
             _ => ' ',
         };
