@@ -10,6 +10,11 @@
     using SnakeGame.Input;
     using SnakeGame.Rendering;
 
+    /// <summary>
+    /// Main orchestrator of the Snake gameplay loop.
+    /// Coordinates: input → movement → spawning → board updates → rendering.
+    /// Uses double-buffer rendering and a block-list to maintain valid spawn positions.
+    /// </summary>
     public class GameplayScene : IGameScene
     {
         private readonly ISnake snake;
@@ -19,9 +24,11 @@
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
+        // blockList keeps track of occupied cells (snake, food, obstacles).
+        // Used by factories to guarantee valid spawn positions without scanning the board.
         private readonly bool[,] blockList;
-        private  CellType[,] prevScene;
-        private  CellType[,] currScene;
+        private CellType[,] prevScene;
+        private CellType[,] currScene;
         private int currentSpeed = 1;
         private IDictionary<Coordinates, Obstacle> obstacles;
 
@@ -81,6 +88,8 @@
                     food = this.UpdateFood(food);
                 }
 
+                // Keep obstacle count constant: remove expired ones and spawn replacements
+                // using blockList to ensure valid positions.
                 this.UpdateObstacles();
 
                 this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
@@ -91,9 +100,14 @@
                 }
 
                 this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
+
+                // Render only the diff between previous and current frame (double-buffer drawing).
                 this.renderer.Draw(prevScene, currScene);
 
+                // Swap buffers (prev ↔ curr) to enable flicker-free differential rendering.
                 (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
+
+                // Maintain frame pacing (FPS control).
                 this.gameTime.Tick();
             }
         }
