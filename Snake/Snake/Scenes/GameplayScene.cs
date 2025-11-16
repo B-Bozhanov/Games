@@ -20,10 +20,11 @@
         private readonly ISnake snake;
         private readonly IRenderer renderer;
         private readonly IObjectFactory objectFactory;
-        private readonly int obstaclesCount = 3;
+        private readonly int obstaclesCount = 50;
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
+        private readonly ISnakeAiController aiController;
 
         // blockList keeps track of occupied cells (snake, food, obstacles).
         // Used by factories to guarantee valid spawn positions without scanning the board.
@@ -32,6 +33,7 @@
         private CellType[,] currScene;
         private int currentSpeed = 1;
         private IDictionary<Coordinates, Obstacle> obstacles;
+        private readonly bool useAi = true;
 
         public GameplayScene(
                 IInputReader inputReader,
@@ -39,7 +41,8 @@
                 IRenderer renderer,
                 IObjectFactory objectFactory,
                 ISnake snake,
-                IGameBoard gameBoard)
+                IGameBoard gameBoard,
+                ISnakeAiController aiController)
         {
             this.inputReader = inputReader;
             this.gameTime = gameTime;
@@ -47,7 +50,7 @@
             this.objectFactory = objectFactory;
             this.snake = snake;
             this.gameBoard = gameBoard;
-
+            this.aiController = aiController;
             var rows = this.gameBoard.BoardConfig.TotalRows;
             var cols = this.gameBoard.BoardConfig.TotalCols;
             this.blockList = new bool[rows, cols];
@@ -66,7 +69,23 @@
 
             while (true)
             {
-                var direction = this.inputReader.GetInput();
+                Direction direction;
+
+                if (this.useAi && this.aiController is not null)
+                {
+                    var context = new SnakeAiContext(
+                        this.snake.HeadPossition,
+                        food.Coordinates,
+                        this.snake.Body,
+                        this.gameBoard);
+
+                    direction = this.aiController.GetNextDirection(context);
+                }
+                else
+                {
+                    direction = this.inputReader.GetInput();
+                }
+
                 var nexHead = snake.GetNextHeadPossition(direction);
 
                 if (this.WillDie(nexHead) || snake.WillCollideWithSelf(nexHead))

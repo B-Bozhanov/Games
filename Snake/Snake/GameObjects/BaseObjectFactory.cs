@@ -49,8 +49,8 @@
         {
             while (true)
             {
-                int row = this.random.Next(boardConfig.PlayableStartRow, boardConfig.PlayableEndRow);
-                int col = this.random.Next(boardConfig.PlayableStartCol, boardConfig.PlayableEndCol);
+                int row = this.random.Next(boardConfig.PlayableStartRow, boardConfig.TotalRows -1);
+                int col = this.random.Next(boardConfig.PlayableStartCol, boardConfig.TotalCols -1);
                 var candidate = new Coordinates(row, col);
                 var isBlocked = blockList[candidate.Row, candidate.Col] == true;
                 if (isBlocked) continue;

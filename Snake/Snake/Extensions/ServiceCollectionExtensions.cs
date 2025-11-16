@@ -22,6 +22,7 @@
             services.AddScoped<IObjectFactory, BaseObjectFactory>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char, ConsoleColor>, ConsoleTheme>();
+            services.AddScoped<ISnakeAiController, BfsSnakeAiController>();
             services.AddSingleton<IBoardConfig>(_ => new BoardConfig(
                 GlobalConstants.GameConstants.PlayableBoardWidth,
                 GlobalConstants.GameConstants.PlayableBoardHeight,

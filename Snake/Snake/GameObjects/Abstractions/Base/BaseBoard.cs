@@ -124,5 +124,11 @@
 
             return CellType.WallsLeftAndRight;
         }
+
+        public CellType GetCellType(Coordinates coordinates)
+        {
+            var cellType = this.Board[coordinates.Row, coordinates.Col]; 
+            return cellType;
+        }
     }
 }

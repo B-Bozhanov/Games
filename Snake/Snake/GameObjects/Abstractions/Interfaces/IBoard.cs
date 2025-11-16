@@ -8,6 +8,8 @@
 
         public void Add(IReadOnlyCollection<Coordinates> coordinates, CellType cellType = CellType.None);
 
+        public CellType GetCellType(Coordinates coordinates);
+
         public void RemoveCellType(Coordinates coordinates);
 
         public void RemoveAll();
