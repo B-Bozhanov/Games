@@ -21,7 +21,7 @@
             services.AddScoped<IInputReader, ConsoleInputReader>();
             services.AddScoped<IObjectFactory, BaseObjectFactory>();
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
-            services.AddScoped<ITheme<char>, ConsoleTheme>();
+            services.AddScoped<ITheme<char, ConsoleColor>, ConsoleTheme>();
             services.AddSingleton<IBoardConfig>(_ => new BoardConfig(
                 GlobalConstants.GameConstants.PlayableBoardWidth,
                 GlobalConstants.GameConstants.PlayableBoardHeight,

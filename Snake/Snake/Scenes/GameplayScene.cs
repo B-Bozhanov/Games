@@ -94,6 +94,8 @@
                 this.UpdateObstacles();
 
                 this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
+                this.gameBoard.Add(nexHead, this.snake.NextHeadPossitionSymbol);
+                this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
 
                 if (!this.snake.ShouldEat)
                 {

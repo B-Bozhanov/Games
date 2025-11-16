@@ -14,6 +14,12 @@
 
         public Coordinates GetLastTailPossition { get; }
 
+        public CellType NextHeadPossitionSymbol { get; }
+
+        public CellType BodySymbol { get; }
+
+        public CellType NextTailPossitionSymbol { get;}
+
         public Coordinates HeadPossition { get; }
 
         public void Eat();

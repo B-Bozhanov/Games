@@ -68,11 +68,8 @@
             {
                 var wall = new Coordinates(topWallRow, col);
 
-                wall = this.SetWallSymbol(wall);
-
-                this.Add(wall, wall.Symbol);
+                this.Add(wall, this.GetBorderSymbol(wall));
             }
-
 
             // Create left and right sides
             for (int row = this.topWallRow; row < HeaderHeight; row++)
@@ -80,10 +77,8 @@
                 var leftWall = new Coordinates(row, this.leftWallCol);
                 var rightWall = new Coordinates(row, this.rightWallCol);
 
-                leftWall = this.SetWallSymbol(leftWall);
-                rightWall = this.SetWallSymbol(rightWall);
-
-                this.AddTwoWalls(leftWall, rightWall);
+                this.Add(leftWall, this.GetBorderSymbol(leftWall));
+                this.Add(rightWall, this.GetBorderSymbol(rightWall));
             }
         }
 
@@ -94,10 +89,8 @@
                 var wall1 = new Coordinates(row, this.leftWallCol);
                 var wall2 = new Coordinates(row, this.rightWallCol);
 
-                wall1 = this.SetWallSymbol(wall1);
-                wall2 = this.SetWallSymbol(wall2);
-
-                this.AddTwoWalls(wall1, wall2);
+                this.Add(wall1, this.GetBorderSymbol(wall1));
+                this.Add(wall2, this.GetBorderSymbol(wall2));
             }
         }
 
@@ -108,17 +101,9 @@
                 var wall1 = new Coordinates(this.middleTopWallRow, col);
                 var wall2 = new Coordinates(this.bottomWallRow, col);
 
-                wall1 = this.SetWallSymbol(wall1);
-                wall2 = this.SetWallSymbol(wall2);
-
-                this.AddTwoWalls(wall1, wall2);
+                this.Add(wall1, this.GetBorderSymbol(wall1));
+                this.Add(wall2, this.GetBorderSymbol(wall2));
             }
-        }
-
-        private void AddTwoWalls(Coordinates coordinates1, Coordinates coordinates2)
-        {
-            this.Board[coordinates1.Row, coordinates1.Col] = coordinates1.Symbol;
-            this.Board[coordinates2.Row, coordinates2.Col] = coordinates2.Symbol;
         }
 
         private CellType GetBorderSymbol(Coordinates coordinates)
@@ -138,12 +123,6 @@
             if (isMiddleTop || isBottom || isTop) return CellType.WallsTopAndBottom;
 
             return CellType.WallsLeftAndRight;
-        }
-
-        private Coordinates SetWallSymbol(Coordinates wall)
-        {
-            wall.Symbol = this.GetBorderSymbol(wall);
-            return wall;
         }
     }
 }

@@ -2,8 +2,10 @@
 {
     using SnakeGame.GameObjects.Enums;
 
-    public interface ITheme<TSymbol>
+    public interface ITheme<TSymbol, TColor>
     {
-        public TSymbol Map(CellType cellType);
+        public TSymbol MapSymbol(CellType cellType);
+
+        public TColor MapColor(CellType cellType);
     }
 }

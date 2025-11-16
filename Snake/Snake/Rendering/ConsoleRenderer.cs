@@ -3,9 +3,9 @@
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
 
-    public class ConsoleRenderer(ITheme<char> theme) : IRenderer
+    public class ConsoleRenderer(ITheme<char, ConsoleColor> theme) : IRenderer
     {
-        private readonly ITheme<char> theme = theme;
+        private readonly ITheme<char, ConsoleColor> theme = theme;
 
         public void Draw(CellType[,] prev, CellType[,] curr)
         {
@@ -21,10 +21,13 @@
                         continue;
                     }
                     var cell = curr[r, c];
-                    var symbol = this.theme.Map(cell);
+                    var symbol = this.theme.MapSymbol(cell);
 
+                    var symbolColor = this.theme.MapColor(cell);
+                    Console.ForegroundColor = symbolColor;
                     Console.SetCursorPosition(c, r);
                     Console.Write(symbol);
+                    Console.ResetColor();
                 }
             }
         }
@@ -37,10 +40,12 @@
                 {
                     var cell = matrix[row, col];
 
-                    var symbol = this.theme.Map(cell);
-
+                    var symbol = this.theme.MapSymbol(cell);
+                    var symbolColor = this.theme.MapColor(cell);
+                    Console.ForegroundColor = symbolColor;
                     Console.SetCursorPosition(col, row);
                     Console.Write(symbol);
+                    Console.ResetColor();
                 }
             }
         }

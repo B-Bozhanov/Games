@@ -13,8 +13,6 @@ public record struct Coordinates(int Row = 0, int Col = 0)
 
     private static readonly Coordinates Right = new(0, 1);
 
-    public CellType Symbol { get; set; }
-
     public readonly Coordinates Move(Direction direction) => direction switch
     {
         Direction.Up => this + Up,

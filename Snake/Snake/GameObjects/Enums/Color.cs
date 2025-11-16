@@ -9,5 +9,6 @@
         Blue,
         Yellow,
         Red,
+        Cyan,
     }
 }
