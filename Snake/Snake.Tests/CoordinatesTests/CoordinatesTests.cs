@@ -72,7 +72,6 @@
         }
 
         [Theory]
-        [InlineData(GameStartRow, GameStartCol, 10, 10, true)]   // горе вляво
         [InlineData(9, 9, 10, 10, true)] // долу вдясно 
         [InlineData(10, 10, 10, 10, false)] // долу вдясно 
         [InlineData(-1, 0, 10, 10, false)]

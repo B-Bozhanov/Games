@@ -6,7 +6,7 @@
     {
         public static class GameConstants
         {
-            public const int GameDefaultFps = 7;
+            public const int GameDefaultFps = 8;
             public const int PlayableBoardWidth = 120;
             public const int PlayableBoardHeight = 25;
             public const int HeaderHeight = 3;
@@ -19,7 +19,8 @@
             public const int StartPossitionRow = GameConstants.HeaderHeight + GameConstants.WallsWidth;
             public const string GameName = "Snake";
 
-            public const Direction DefaultDirection = Direction.Right;
+            public const Direction DefaultSnakeDirection = Direction.Right;
+            public const Direction DefaultSnakeEnemyDirection = Direction.Left;
         }
     }
 }

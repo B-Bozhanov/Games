@@ -31,7 +31,7 @@
         {
             if (count <= 0) throw new InvalidOperationException("Count must be greater than 0");
 
-            var obstacles = new Dictionary<Coordinates,  Obstacle>();
+            var obstacles = new Dictionary<Coordinates, Obstacle>();
 
             for (int o = 0; o < count; o++)
             {
@@ -39,7 +39,10 @@
                 this.objectLifeTimeSeconds = TimeSpan.FromSeconds(this.random.Next(this.startSeconds, this.endSeconds));
                 var obstacle = new Obstacle(coordinates, this.objectLifeTimeSeconds);
 
-                obstacles.Add(obstacle.Coordinates, obstacle);
+                if (!obstacles.ContainsKey(obstacle.Coordinates))
+                {
+                    obstacles.Add(obstacle.Coordinates, obstacle);
+                }
             }
 
             return obstacles;
@@ -49,8 +52,8 @@
         {
             while (true)
             {
-                int row = this.random.Next(boardConfig.PlayableStartRow, boardConfig.TotalRows -1);
-                int col = this.random.Next(boardConfig.PlayableStartCol, boardConfig.TotalCols -1);
+                int row = this.random.Next(boardConfig.PlayableStartRow, boardConfig.TotalRows - 1);
+                int col = this.random.Next(boardConfig.PlayableStartCol, boardConfig.TotalCols - 1);
                 var candidate = new Coordinates(row, col);
                 var isBlocked = blockList[candidate.Row, candidate.Col] == true;
                 if (isBlocked) continue;

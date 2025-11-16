@@ -6,6 +6,9 @@
 
         public TimeSpan MiddleTime { get; }
 
+        public int CurrentFps { get; }
+
+
         public void IncreaseSpeed();
 
         public void Tick();

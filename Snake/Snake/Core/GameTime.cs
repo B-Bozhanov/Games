@@ -19,13 +19,15 @@
 
         public TimeSpan TotalTime => DateTime.UtcNow - this.startTime;
 
+        public int CurrentFps => this.currentFps;
+
         public int TargetFrameTimeMs => 1000 / this.currentFps;
 
         public TimeSpan MiddleTime { get; private set; }
 
         public void IncreaseSpeed()
         {
-            this.currentFps++;
+            this.currentFps = (int)(this.currentFps * 1.05);
         }
 
         public void Tick()

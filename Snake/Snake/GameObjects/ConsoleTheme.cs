@@ -36,6 +36,7 @@
             or CellType.SnakeTailUp
             or CellType.SnakeTailLeft => ConsoleColor.Blue,
             CellType.SnakeBody => ConsoleColor.DarkYellow,
+            CellType.SnakeEnemyBody => ConsoleColor.DarkCyan,
             CellType.Food => ConsoleColor.Green,
             CellType.Obstacle => ConsoleColor.Cyan,
             _ => ConsoleColor.Gray
@@ -62,6 +63,7 @@
             CellType.SnakeTailDown => this.snakeTailDown,
             CellType.SnakeTailLeft => this.snakeTailLeft,
             CellType.SnakeTailRight => this.snakeTailRight,
+            CellType.SnakeEnemyBody => this.snakeBody,
             _ => ' ',
         };
     }

@@ -12,6 +12,7 @@
         SnakeTailDown,
         SnakeTailLeft,
         SnakeTailRight,
+        SnakeEnemyBody,
         Food,
         Obstacle,
         WallsLeftAndRight,

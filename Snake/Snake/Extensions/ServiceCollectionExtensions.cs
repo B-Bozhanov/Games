@@ -15,7 +15,6 @@
     {
         public static IServiceCollection AddSnakeGame(this IServiceCollection services)
         {
-            services.AddScoped<ISnake, Snake>();
             services.AddScoped<IGameTime, GameTime>();
             services.AddScoped<IRenderer, ConsoleRenderer>();
             services.AddScoped<IInputReader, ConsoleInputReader>();
@@ -33,6 +32,8 @@
             services.AddKeyedScoped<IGameScene, GameplayScene>("gamePlay");
             services.AddKeyedScoped<IGameScene, MainMenuScene>("menu");
             services.AddKeyedScoped<IGameScene, PauseScene>("pause");
+            services.AddKeyedScoped<ISnake, Snake>("snake");
+            services.AddKeyedScoped<ISnake, SnakeEnimy>("snakeEnimy");
 
             return services;
         }

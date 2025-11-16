@@ -1,6 +1,9 @@
 ﻿namespace SnakeGame.Scenes
 {
     using System.Collections.Generic;
+    using System.Text.Json;
+
+    using Microsoft.Extensions.DependencyInjection;
 
     using SnakeGame.Core;
     using SnakeGame.Extensions;
@@ -17,10 +20,13 @@
     /// </summary>
     public class GameplayScene : IGameScene
     {
+        private readonly StreamWriter aiLog = new StreamWriter("snake_ai_log.txt", append: true);
+
         private readonly ISnake snake;
+        private readonly ISnake snakeEnimy;
         private readonly IRenderer renderer;
         private readonly IObjectFactory objectFactory;
-        private readonly int obstaclesCount = 50;
+        private readonly int obstaclesCount = 5;
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
@@ -40,15 +46,17 @@
                 IGameTime gameTime,
                 IRenderer renderer,
                 IObjectFactory objectFactory,
-                ISnake snake,
                 IGameBoard gameBoard,
-                ISnakeAiController aiController)
+                ISnakeAiController aiController,
+                [FromKeyedServices("snake")] ISnake snake,
+                [FromKeyedServices("snakeEnimy")] ISnake snakeEnimy)
         {
             this.inputReader = inputReader;
             this.gameTime = gameTime;
             this.renderer = renderer;
             this.objectFactory = objectFactory;
             this.snake = snake;
+            this.snakeEnimy = snakeEnimy;
             this.gameBoard = gameBoard;
             this.aiController = aiController;
             var rows = this.gameBoard.BoardConfig.TotalRows;
@@ -67,26 +75,43 @@
 
             this.renderer.Draw(prevScene);
 
+            int count = 0;
+            int point1 = 0;
+            int point2 = 0;
+
             while (true)
             {
-                Direction direction;
+                Direction humanDir;
+                Direction aiDir = Direction.Right;
 
                 if (this.useAi && this.aiController is not null)
                 {
+                    var total = new Queue<Coordinates>();
+
+                    foreach (var item in snakeEnimy.Body)
+                    {
+                        total.Enqueue(item);
+                    }
+                    foreach (var item in snake.Body)
+                    {
+                        total.Enqueue(item);
+                    }
                     var context = new SnakeAiContext(
-                        this.snake.HeadPossition,
+                        this.snakeEnimy.HeadPossition,
                         food.Coordinates,
-                        this.snake.Body,
+                        snakeEnimy.Body,
                         this.gameBoard);
 
-                    direction = this.aiController.GetNextDirection(context);
-                }
-                else
-                {
-                    direction = this.inputReader.GetInput();
+                    aiDir = this.aiController.GetNextDirection(context);
+
+                    this.LogJson(context, aiDir);
                 }
 
-                var nexHead = snake.GetNextHeadPossition(direction);
+                humanDir = this.inputReader.GetInput();
+
+
+                var nexHead = this.snake.GetNextHeadPossition(humanDir);
+                var enemyNextHead = this.snakeEnimy.GetNextHeadPossition(aiDir);
 
                 if (this.WillDie(nexHead) || snake.WillCollideWithSelf(nexHead))
                 {
@@ -94,13 +119,37 @@
                     break;
                 }
 
-                this.UpdateSnake(direction);
+                if (this.WillDie(enemyNextHead) || snake.WillCollideWithSelf(enemyNextHead))
+                {
+                    Console.Write("Enemy - Game Over");
+                    break;
+                }
+
+                this.UpdateSnake(humanDir, this.snake);
+                this.UpdateSnake(aiDir, this.snakeEnimy);
 
                 if (nexHead == food!.Coordinates)
                 {
-                    food = this.HandleFoodEaten(food);
-                    this.gameTime.IncreaseSpeed();
-                    currentSpeed++;
+                    food = this.HandleFoodEaten(food, this.snake);
+                    if ((count + 10) % 2 == 0)
+                    {
+                        this.gameTime.IncreaseSpeed();
+                    }
+                    Console.SetCursorPosition(2, 2);
+                    point1++;
+                    Console.Write(point1);
+                }
+
+                if (enemyNextHead == food!.Coordinates)
+                {
+                    food = this.HandleFoodEaten(food, this.snakeEnimy);
+                    if ((count + 10) % 2 ==0)
+                    {
+                        this.gameTime.IncreaseSpeed();
+                    }
+                    Console.SetCursorPosition(119, 2);
+                    point2++;
+                    Console.Write(point2);
                 }
 
                 if (food.IsExpired)
@@ -116,9 +165,17 @@
                 this.gameBoard.Add(nexHead, this.snake.NextHeadPossitionSymbol);
                 this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
 
+                this.gameBoard.Add(this.snakeEnimy.Body, CellType.SnakeEnemyBody);
+                //this.gameBoard.Add(enemyNextHead, this.snakeEnimy.NextHeadPossitionSymbol);
+                //this.gameBoard.Add(this.snakeEnimy.GetCurrentTailPossition, this.snakeEnimy.NextTailPossitionSymbol);
+
                 if (!this.snake.ShouldEat)
                 {
                     this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
+                }
+                if (!this.snakeEnimy.ShouldEat)
+                {
+                    this.gameBoard.RemoveCellType(this.snakeEnimy.GetLastTailPossition);
                 }
 
                 this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
@@ -129,6 +186,9 @@
                 // Swap buffers (prev ↔ curr) to enable flicker-free differential rendering.
                 (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
 
+                count++;
+                Console.SetCursorPosition(55, 2);
+                Console.Write(this.gameTime.CurrentFps);
                 // Maintain frame pacing (FPS control).
                 this.gameTime.Tick();
             }
@@ -145,9 +205,9 @@
             }
         }
 
-        private Food HandleFoodEaten(Food oldFood)
+        private Food HandleFoodEaten(Food oldFood, ISnake snake)
         {
-            this.snake.Eat();
+            snake.Eat();
             return this.UpdateFood(oldFood);
         }
 
@@ -155,7 +215,8 @@
         {
             this.gameBoard.CreateBoard();
 
-            this.Block(snake.Body);
+            this.Block(this.snake.Body);
+            this.Block(this.snakeEnimy.Body);
 
             var food = this.objectFactory.CreateFood(
                 this.gameBoard.BoardConfig,
@@ -179,6 +240,21 @@
 
         private bool IsBlocked(Coordinates coordinates)
             => this.blockList[coordinates.Row, coordinates.Col];
+
+        private void LogJson(SnakeAiContext context, Direction dir)
+        {
+            var data = new
+            {
+                Head = new { context.Head.Row, context.Head.Col },
+                Food = new { context.Food.Row, context.Food.Col },
+                Body = context.Body.Select(b => new { b.Row, b.Col }),
+                Direction = dir.ToString()
+            };
+
+            var json = JsonSerializer.Serialize(data);
+
+            File.AppendAllText("snake_ai_log.json", json + Environment.NewLine);
+        }
 
         private void UnBlock(Coordinates coordinates)
                     => this.blockList[coordinates.Row, coordinates.Col] = false;
@@ -234,11 +310,11 @@
             }
         }
 
-        private void UpdateSnake(Direction direction)
+        private void UpdateSnake(Direction direction, ISnake snake)
         {
-            this.UnBlock(this.snake.Body);
-            this.snake.Move(direction);
-            this.Block(this.snake.Body);
+            this.UnBlock(snake.Body);
+            snake.Move(direction);
+            this.Block(snake.Body);
         }
 
         private bool WillDie(Coordinates nextHead)
