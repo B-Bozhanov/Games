@@ -9,21 +9,146 @@
 
     public class BfsSnakeAiController : ISnakeAiController
     {
+        private int count = 0;
+        private readonly List<Coordinates> hamiltonianCycle = new();
+        private readonly Dictionary<Coordinates, int> coordIndex = new();
+
+        private bool hamiltonianInitialized;
+        private const int HamiltonianThreshold = 80; // над колко дължина да минава в този режим
+
+
         public Direction GetNextDirection(SnakeAiContext context)
         {
-            var path = this.FindPath(context);
-
-            if (path is null || path.Count < 2)
-            {
-                // fallback – ако няма път, просто продължи по посока
-                return Direction.Right;//this.TryNotDie(context); // или context.CurrentDirection, ако го подадем
-            }
+            var board = context.GameBoard;
+            var rows = board.BoardConfig.TotalRows;
+            var cols = board.BoardConfig.TotalCols;
 
             var head = context.Head;
-            var next = path[1]; // [0] = head, [1] = първа стъпка
+            var food = context.Food;
+            var snakeBody = new HashSet<Coordinates>(context.Body);
 
-            return GetDirectionFromTo(head, next);
+            // 1) Опитваме път до храната с BFS (само като hint)
+            var path = this.FindPath(context);
+
+            Coordinates? bfsNextStep = null;
+            bool hasBfsNextStep = path is { Count: >= 2 };
+
+            if (hasBfsNextStep)
+            {
+                bfsNextStep = path![1]; // [0] = head, [1] = първата стъпка след главата
+            }
+
+            var possibleDirections = new[]
+            {
+        Direction.Up,
+        Direction.Down,
+        Direction.Left,
+        Direction.Right,
+    };
+
+            // 2) Оценяваме ВСИЧКИ валидни ходове:
+            //    - да НЕ умират веднага (WillDieImmediate)
+            //    - площ (reachable area)
+            //    - разстояние до храната
+            //    - дали следват BFS стъпката
+            var scoredMoves = new List<(Direction Dir, int Area, int DistanceToFood, bool FollowsBfs)>();
+
+            foreach (var dir in possibleDirections)
+            {
+                var offset = GetOffsetForDirection(dir);
+                var next = head + offset;
+
+                if (!next.IsInRange(rows, cols))
+                {
+                    continue;
+                }
+
+                if (this.WillDieImmediate(next, snakeBody, context))
+                {
+                    continue;
+                }
+
+                int area = this.ComputeReachableAreaSize(next, snakeBody, context);
+
+                int distToFood = ManhattanDistance(next, food);
+
+                bool followsBfs =
+                    hasBfsNextStep &&
+                    bfsNextStep.HasValue &&
+                    next.Equals(bfsNextStep.Value);
+
+                scoredMoves.Add((dir, area, distToFood, followsBfs));
+            }
+
+            // 3) Ако имаме поне един разумен ход – избираме
+            if (scoredMoves.Count > 0)
+            {
+                // най-голямата налична площ
+                int maxArea = scoredMoves.Max(x => x.Area);
+
+                // 3.1. Първо филтрираме само "широките" ходове
+                //     (например >= 70% от най-голямата площ)
+                var wideMoves = scoredMoves
+                    .Where(x => x.Area >= maxArea * 70 / 100)
+                    .ToList();
+
+                if (wideMoves.Count == 0)
+                {
+                    wideMoves = scoredMoves; // ако всички са тесни, работим с каквото има
+                }
+
+                // 3.2. Ако сред широките има ход, който следва BFS – предпочитаме него
+                var wideBfsMoves = wideMoves
+                    .Where(x => x.FollowsBfs)
+                    .ToList();
+
+                if (wideBfsMoves.Count > 0)
+                {
+                    // от BFS ходовете, които са достатъчно широки,
+                    // взимаме този, който е най-близо до храната
+                    return wideBfsMoves
+                        .OrderBy(x => x.DistanceToFood)
+                        .First()
+                        .Dir;
+                }
+
+                // 3.3. Иначе – от всички широки ходове взимаме този,
+                //      който е най-близо до храната
+                return wideMoves
+                    .OrderBy(x => x.DistanceToFood)
+                    .First()
+                    .Dir;
+            }
+
+            // 4) Ако НЯМА нито един ход с positive area (наистина кофти),
+            //    поне търсим посока, в която не умираме веднага.
+            foreach (var dir in possibleDirections)
+            {
+                var offset = GetOffsetForDirection(dir);
+                var next = head + offset;
+
+                if (!next.IsInRange(rows, cols))
+                {
+                    continue;
+                }
+
+                if (!this.WillDieImmediate(next, snakeBody, context))
+                {
+                    return dir;
+                }
+            }
+
+            // 5) Абсолютно безизходна ситуация – тук каквото и да върнеш, си свършен.
+            // Ако имаш context.CurrentDirection – по-добре е да я върнеш.
+            // return context.CurrentDirection;
+            return Direction.Right;
         }
+
+        private static int ManhattanDistance(Coordinates a, Coordinates b)
+        {
+            return Math.Abs(a.Row - b.Row) + Math.Abs(a.Col - b.Col);
+        }
+
 
         private static Direction GetDirectionFromTo(Coordinates from, Coordinates to)
         {
@@ -111,7 +236,6 @@
             return null; // няма път
         }
 
-
         private List<Coordinates>? ReconstructPath(Dictionary<Coordinates, Coordinates> parent, Coordinates start, Coordinates target)
         {
             var path = new List<Coordinates>();
@@ -139,46 +263,49 @@
 
             var possibleDirections = new[]
             {
-                Direction.Up,
-                Direction.Down,
-                Direction.Left,
-                Direction.Right,
-            };
+        Direction.Up,
+        Direction.Down,
+        Direction.Left,
+        Direction.Right,
+    };
 
-            var safeMoves = new List<Direction>();
+            // (direction, reachableAreaSize)
+            var scoredMoves = new List<(Direction Dir, int Area)>();
 
-            // 1) Търсим истински "safe" ходове:
-            //   - не умираш веднага
-            //   - има поне малко пространство за дишане (HasEscapePath)
             foreach (var dir in possibleDirections)
             {
                 var offset = GetOffsetForDirection(dir);
                 var next = head + offset;
 
+                // извън борда?
                 if (!next.IsInRange(rows, cols))
                 {
                     continue;
                 }
 
+                // умира ли веднага (тяло/obstacle/стена)?
                 if (this.WillDieImmediate(next, snakeBody, context))
                 {
                     continue;
                 }
 
-                if (!this.HasEscapePath(next, snakeBody, context))
-                {
-                    continue;
-                }
+                // колко свободно пространство има около този ход?
+                var area = this.ComputeReachableAreaSize(next, snakeBody, context);
 
-                safeMoves.Add(dir);
+                scoredMoves.Add((dir, area));
             }
 
-            if (safeMoves.Count > 0)
+            // 1) Ако имаме поне една посока с някакво свободно пространство → взимаме тази с най-голямата площ
+            if (scoredMoves.Count > 0)
             {
-                return this.ChooseBestSafeMove(safeMoves, head, snakeBody);
+                return scoredMoves
+                    .OrderByDescending(x => x.Area)
+                    .First()
+                    .Dir;
             }
 
-            // 2) Ако няма истински safe ходове, поне такъв, който не умира веднага
+            // 2) Ако flood-fill нищо не е намерил (много зле е положението),
+            //    поне избери посока, в която не умираш веднага.
             foreach (var dir in possibleDirections)
             {
                 var offset = GetOffsetForDirection(dir);
@@ -195,7 +322,7 @@
                 }
             }
 
-            // 3) Абсолютен fallback – продължи надясно (или текущата посока, ако я имаш в context)
+            // 3) Абсолютен fallback – ако имаш текуща посока в контекста, ползвай нея.
             // return context.CurrentDirection;
             return Direction.Right;
         }
@@ -208,25 +335,29 @@
             var board = context.GameBoard;
             var rows = board.BoardConfig.TotalRows;
             var cols = board.BoardConfig.TotalCols;
-            var tail = snakeBody.First();
-            bool isTailCell = next == tail;
-            bool willEat = (next == context.Food);
 
             if (!next.IsInRange(rows, cols))
             {
                 return true;
             }
 
+            // tail logic:
+            // позволяваме да влезем в клетката на опашката,
+            // ако няма да ядем – опашката ще се премести в същия тик
+            var tail = snakeBody.First(); // assuming Queue front = tail
+            bool isTailCell = next == tail;
+            bool willEat = next == context.Food;
+
             if (snakeBody.Contains(next))
             {
                 if (isTailCell && !willEat)
                 {
+                    // безопасно – опашката ще се отдръпне
                     return false;
                 }
-                else
-                {
-                    return true; // удар в тяло
-                }
+
+                // удар в тяло
+                return true;
             }
 
             var cell = board.GetCellType(next);
@@ -236,58 +367,9 @@
                 return true;
             }
 
-            // ако имаш CellType.Wall, добави:
+            // ако имаш стени като CellType.Wall, добави:
             // if (cell == CellType.Wall) return true;
 
-            return false;
-        }
-
-        private bool HasEscapePath(
-            Coordinates start,
-            HashSet<Coordinates> snakeBody,
-            SnakeAiContext context)
-        {
-            var board = context.GameBoard;
-            var rows = board.BoardConfig.TotalRows;
-            var cols = board.BoardConfig.TotalCols;
-
-            var queue = new Queue<Coordinates>();
-            var visited = new HashSet<Coordinates>();
-
-            queue.Enqueue(start);
-            visited.Add(start);
-
-            int freeCells = 0;
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-                freeCells++;
-
-                // ако намерим поне няколко свободни клетки – достатъчно е, не сме в капан
-                if (freeCells >= 4)
-                {
-                    return true;
-                }
-
-                foreach (var neighbor in GetNeighbors(current, rows, cols))
-                {
-                    if (visited.Contains(neighbor))
-                    {
-                        continue;
-                    }
-
-                    if (this.IsBlocked(neighbor, snakeBody, context))
-                    {
-                        continue;
-                    }
-
-                    visited.Add(neighbor);
-                    queue.Enqueue(neighbor);
-                }
-            }
-
-            // няма достатъчно свободно пространство – капан
             return false;
         }
 
@@ -297,10 +379,13 @@
             SnakeAiContext context)
         {
             var tail = snakeBody.First();      // assuming Queue front = tail
-            var willEat = coord == context.Food;
+            bool willEat = coord == context.Food;
 
-            if(coord == tail && !willEat)
-              return false;
+            // tail logic и тук – за BFS/escape check и т.н.
+            if (coord == tail && !willEat)
+            {
+                return false;
+            }
 
             if (snakeBody.Contains(coord))
             {
@@ -320,6 +405,88 @@
             return false;
         }
 
+        /// <summary>
+        /// Колко свободни клетки са достижими от дадена позиция (flood-fill / BFS).
+        /// Използва по-консервативен block (тялото се брои за стена).
+        /// </summary>
+        private int ComputeReachableAreaSize(
+            Coordinates start,
+            HashSet<Coordinates> snakeBody,
+            SnakeAiContext context)
+        {
+            var board = context.GameBoard;
+            var rows = board.BoardConfig.TotalRows;
+            var cols = board.BoardConfig.TotalCols;
+
+            var visited = new HashSet<Coordinates>();
+            var queue = new Queue<Coordinates>();
+
+            visited.Add(start);
+            queue.Enqueue(start);
+
+            int count = 0;
+
+            // по желание лимит да не обхождаш цялата карта при много големи boards
+            const int MaxCells = 4000;
+
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
+                count++;
+
+                if (count >= MaxCells)
+                {
+                    break;
+                }
+
+                foreach (var neighbor in GetNeighbors(current, rows, cols))
+                {
+                    if (visited.Contains(neighbor))
+                    {
+                        continue;
+                    }
+
+                    if (this.IsBlockedForAreaCheck(neighbor, snakeBody, context))
+                    {
+                        continue;
+                    }
+
+                    visited.Add(neighbor);
+                    queue.Enqueue(neighbor);
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// Block логика за flood-fill:
+        /// - по-консервативна от WillDieImmediate
+        /// - тялото се брои за стена (няма tail logic тук, нарочно)
+        /// </summary>
+        private bool IsBlockedForAreaCheck(
+            Coordinates coord,
+            HashSet<Coordinates> snakeBody,
+            SnakeAiContext context)
+        {
+            if (snakeBody.Contains(coord))
+            {
+                return true;
+            }
+
+            var cell = context.GameBoard.GetCellType(coord);
+
+            if (cell == CellType.Obstacle)
+            {
+                return true;
+            }
+
+            // ако имаш стени:
+            // if (cell == CellType.Wall) return true;
+
+            return false;
+        }
+
         private static IEnumerable<Coordinates> GetNeighbors(
             Coordinates c,
             int rows,
@@ -327,11 +494,11 @@
         {
             var directions = new[]
             {
-                new Coordinates(-1, 0), // up
-                new Coordinates(1, 0),  // down
-                new Coordinates(0, -1), // left
-                new Coordinates(0, 1),  // right
-            };
+        new Coordinates(-1, 0), // up
+        new Coordinates(1, 0),  // down
+        new Coordinates(0, -1), // left
+        new Coordinates(0, 1),  // right
+    };
 
             foreach (var d in directions)
             {
@@ -344,40 +511,6 @@
             }
         }
 
-        private Direction ChooseBestSafeMove(
-            IEnumerable<Direction> safeMoves,
-            Coordinates head,
-            HashSet<Coordinates> snakeBody)
-        {
-            // проста евристика – избери хода, който държи главата
-            // най-далеч от останалото тяло (да не се навира навътре)
-            return safeMoves
-                .OrderByDescending(dir =>
-                {
-                    var offset = GetOffsetForDirection(dir);
-                    var next = head + offset;
-                    return DistanceFromBody(next, snakeBody);
-                })
-                .First();
-        }
-
-        private static int DistanceFromBody(Coordinates pos, HashSet<Coordinates> body)
-        {
-            var min = int.MaxValue;
-
-            foreach (var part in body)
-            {
-                var d = Math.Abs(part.Row - pos.Row) + Math.Abs(part.Col - pos.Col);
-
-                if (d < min)
-                {
-                    min = d;
-                }
-            }
-
-            return min;
-        }
-
         private static Coordinates GetOffsetForDirection(Direction dir)
         {
             return dir switch
@@ -385,10 +518,9 @@
                 Direction.Up => new Coordinates(-1, 0),
                 Direction.Down => new Coordinates(1, 0),
                 Direction.Left => new Coordinates(0, -1),
-                Direction.Right => new Coordinates(0, 1),
+                Direction.Right => new Coordinates(0, 1), // ако долу ти е +1
                 _ => new Coordinates(0, 0),
             };
         }
     }
 }
-

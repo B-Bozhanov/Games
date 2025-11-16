@@ -20,13 +20,11 @@
     /// </summary>
     public class GameplayScene : IGameScene
     {
-        private readonly StreamWriter aiLog = new StreamWriter("snake_ai_log.txt", append: true);
-
         private readonly ISnake snake;
         private readonly ISnake snakeEnimy;
         private readonly IRenderer renderer;
         private readonly IObjectFactory objectFactory;
-        private readonly int obstaclesCount = 5;
+        private readonly int obstaclesCount = 500;
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
@@ -86,16 +84,16 @@
 
                 if (this.useAi && this.aiController is not null)
                 {
-                    var total = new Queue<Coordinates>();
+                    //var total = new Queue<Coordinates>();
 
-                    foreach (var item in snakeEnimy.Body)
-                    {
-                        total.Enqueue(item);
-                    }
-                    foreach (var item in snake.Body)
-                    {
-                        total.Enqueue(item);
-                    }
+                    //foreach (var item in snakeEnimy.Body)
+                    //{
+                    //    total.Enqueue(item);
+                    //}
+                    //foreach (var item in snake.Body)
+                    //{
+                    //    total.Enqueue(item);
+                    //}
                     var context = new SnakeAiContext(
                         this.snakeEnimy.HeadPossition,
                         food.Coordinates,
@@ -107,46 +105,45 @@
                     this.LogJson(context, aiDir);
                 }
 
-                humanDir = this.inputReader.GetInput();
+                //humanDir = this.inputReader.GetInput();
 
 
-                var nexHead = this.snake.GetNextHeadPossition(humanDir);
+                //var nexHead = this.snake.GetNextHeadPossition(humanDir);
                 var enemyNextHead = this.snakeEnimy.GetNextHeadPossition(aiDir);
 
-                if (this.WillDie(nexHead) || snake.WillCollideWithSelf(nexHead))
-                {
-                    Console.Write("Game Over");
-                    break;
-                }
+                //if (this.WillDie(nexHead) || snake.WillCollideWithSelf(nexHead))
+                //{
+                //    Console.Write("Game Over");
+                //    break;
+                //}
 
-                if (this.WillDie(enemyNextHead) || snake.WillCollideWithSelf(enemyNextHead))
+                if (this.WillDie(enemyNextHead) || this.snakeEnimy.WillCollideWithSelf(enemyNextHead))
                 {
                     Console.Write("Enemy - Game Over");
                     break;
                 }
 
-                this.UpdateSnake(humanDir, this.snake);
-                this.UpdateSnake(aiDir, this.snakeEnimy);
+                //this.UpdateSnake(humanDir, this.snake);
+                this.UpdateSnake(aiDir, this.snakeEnimy, enemyNextHead);
 
-                if (nexHead == food!.Coordinates)
-                {
-                    food = this.HandleFoodEaten(food, this.snake);
-                    if ((count + 10) % 2 == 0)
-                    {
-                        this.gameTime.IncreaseSpeed();
-                    }
-                    Console.SetCursorPosition(2, 2);
-                    point1++;
-                    Console.Write(point1);
-                }
+                //if (nexHead == food!.Coordinates)
+                //{
+                //    food = this.HandleFoodEaten(food, this.snake);
+                //    if ((count + 10) % 2 == 0)
+                //    {
+                //        this.gameTime.IncreaseSpeed();
+                //    }
+                //    Console.SetCursorPosition(2, 2);
+                //    point1++;
+                //    Console.Write(point1);
+                //}
 
                 if (enemyNextHead == food!.Coordinates)
                 {
                     food = this.HandleFoodEaten(food, this.snakeEnimy);
-                    if ((count + 10) % 2 ==0)
-                    {
+                   
                         this.gameTime.IncreaseSpeed();
-                    }
+                    
                     Console.SetCursorPosition(119, 2);
                     point2++;
                     Console.Write(point2);
@@ -161,13 +158,13 @@
                 // using blockList to ensure valid positions.
                 this.UpdateObstacles();
 
-                this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
-                this.gameBoard.Add(nexHead, this.snake.NextHeadPossitionSymbol);
-                this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
+                //this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
+                //this.gameBoard.Add(nexHead, this.snake.NextHeadPossitionSymbol);
+                //this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
 
-                this.gameBoard.Add(this.snakeEnimy.Body, CellType.SnakeEnemyBody);
-                //this.gameBoard.Add(enemyNextHead, this.snakeEnimy.NextHeadPossitionSymbol);
-                //this.gameBoard.Add(this.snakeEnimy.GetCurrentTailPossition, this.snakeEnimy.NextTailPossitionSymbol);
+                this.gameBoard.Add(this.snakeEnimy.Body, CellType.SnakeBody);
+                this.gameBoard.Add(enemyNextHead, this.snakeEnimy.NextHeadPossitionSymbol);
+                this.gameBoard.Add(this.snakeEnimy.GetCurrentTailPossition, this.snakeEnimy.NextTailPossitionSymbol);
 
                 if (!this.snake.ShouldEat)
                 {
@@ -190,7 +187,7 @@
                 Console.SetCursorPosition(55, 2);
                 Console.Write(this.gameTime.CurrentFps);
                 // Maintain frame pacing (FPS control).
-                this.gameTime.Tick();
+                //this.gameTime.Tick();
             }
         }
 
@@ -215,7 +212,8 @@
         {
             this.gameBoard.CreateBoard();
 
-            this.Block(this.snake.Body);
+            this.gameBoard.Add(snakeEnimy.Body);
+            //this.Block(this.snake.Body);
             this.Block(this.snakeEnimy.Body);
 
             var food = this.objectFactory.CreateFood(
@@ -232,7 +230,7 @@
             this.Block(obsCoordinates!);
 
             this.gameBoard.Add(food.Coordinates, CellType.Food);
-            this.gameBoard.Add(snake.Body, CellType.SnakeBody);
+            //this.gameBoard.Add(snake.Body, CellType.SnakeBody);
             this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
 
             return food;
@@ -248,6 +246,8 @@
                 Head = new { context.Head.Row, context.Head.Col },
                 Food = new { context.Food.Row, context.Food.Col },
                 Body = context.Body.Select(b => new { b.Row, b.Col }),
+                Obstacles = this.obstacles.Keys,
+                Tick = this.gameTime.CurrentFps,
                 Direction = dir.ToString()
             };
 
@@ -310,11 +310,12 @@
             }
         }
 
-        private void UpdateSnake(Direction direction, ISnake snake)
+        private void UpdateSnake(Direction direction, ISnake snake, Coordinates nextHead)
         {
             this.UnBlock(snake.Body);
             snake.Move(direction);
             this.Block(snake.Body);
+            this.Block(nextHead);
         }
 
         private bool WillDie(Coordinates nextHead)

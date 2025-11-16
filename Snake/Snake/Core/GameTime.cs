@@ -27,7 +27,7 @@
 
         public void IncreaseSpeed()
         {
-            this.currentFps = (int)(this.currentFps * 1.05);
+            this.currentFps++;// (int)(this.currentFps * 1.05);
         }
 
         public void Tick()
