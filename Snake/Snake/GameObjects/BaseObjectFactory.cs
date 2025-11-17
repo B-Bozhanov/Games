@@ -14,8 +14,8 @@
 
         public BaseObjectFactory()
         {
-            this.startSeconds = 10;
-            this.endSeconds = 30;
+            this.startSeconds = 1;
+            this.endSeconds = 3;
             this.random = new Random();
         }
 

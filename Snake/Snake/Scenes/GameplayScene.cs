@@ -24,7 +24,7 @@
         private readonly ISnake snakeEnimy;
         private readonly IRenderer renderer;
         private readonly IObjectFactory objectFactory;
-        private readonly int obstaclesCount = 500;
+        private readonly int obstaclesCount = 100;
         private readonly IInputReader inputReader;
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
@@ -94,15 +94,15 @@
                     //{
                     //    total.Enqueue(item);
                     //}
-                    var context = new SnakeAiContext(
-                        this.snakeEnimy.HeadPossition,
-                        food.Coordinates,
-                        snakeEnimy.Body,
-                        this.gameBoard);
+                    //var context = new SnakeAiContext(
+                    //    this.snakeEnimy.HeadPossition,
+                    //    food.Coordinates,
+                    //    snakeEnimy.Body,
+                    //    this.gameBoard);
 
-                    aiDir = this.aiController.GetNextDirection(context);
+                   // aiDir = this.aiController.GetNextDirection(context);
 
-                    this.LogJson(context, aiDir);
+                    //this.LogJson(context, aiDir);
                 }
 
                 //humanDir = this.inputReader.GetInput();
@@ -187,7 +187,7 @@
                 Console.SetCursorPosition(55, 2);
                 Console.Write(this.gameTime.CurrentFps);
                 // Maintain frame pacing (FPS control).
-                //this.gameTime.Tick();
+                this.gameTime.Tick();
             }
         }
 
@@ -298,7 +298,7 @@
             this.obstacles.RemoveRange(expiredKeys);
 
             var newObstacles = this.objectFactory.CreateObstacles(
-                expiredKeys.Count,
+                new Random().Next(1, 10),
                 this.gameBoard.BoardConfig,
                 this.blockList);
 

@@ -6,7 +6,7 @@
     {
         public static class GameConstants
         {
-            public const int GameDefaultFps = 1000;
+            public const int GameDefaultFps = 20;
             public const int PlayableBoardWidth = 120;
             public const int PlayableBoardHeight = 25;
             public const int HeaderHeight = 3;
