@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 
-using SnakeGame.Core;
+using SnakeGame.Core.Scenes.Interfaces;
 using SnakeGame.Extensions;
 
 var services = new ServiceCollection().AddSnakeGame();

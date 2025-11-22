@@ -1,8 +1,10 @@
-﻿namespace SnakeGame.Core
+﻿namespace SnakeGame.Core.Scenes
 {
     using Microsoft.Extensions.DependencyInjection;
 
-    public class GameEngine(
+    using SnakeGame.Core.Scenes.Interfaces;
+
+    public class SceneManager(
         [FromKeyedServices("gamePlay")] IGameScene gamePlayScene,
         [FromKeyedServices("menu")] IGameScene menu,
         [FromKeyedServices("pause")] IGameScene pause) : IGameScene

@@ -78,11 +78,11 @@ public class FoodTests
 
         // Змията – достатъчно дълга, за да има реален шанс за колизия при избор
         var snake = new Snake(10, 6);
-        snake.CurrentDirection = Direction.Right;
+        snake.CurrentDirection = SnakeGame.GameObjects.Enums.Direction.Right;
         // малко ходове, за да "разбъркаме" тялото
-        snake.Move(Direction.Right);
-        snake.Move(Direction.Down);
-        snake.Move(Direction.Left);
+        snake.Move(SnakeGame.GameObjects.Enums.Direction.Right);
+        snake.Move(SnakeGame.GameObjects.Enums.Direction.Down);
+        snake.Move(SnakeGame.GameObjects.Enums.Direction.Left);
 
         var foodFactory = new FoodFactory();
 

@@ -2,6 +2,7 @@
 {
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
+    using SnakeGame.Services;
 
     using static SnakeGame.Common.GlobalConstants;
 
@@ -68,7 +69,8 @@
 
         private Direction ChangeDirection(Direction newDirection)
         {
-            if (newDirection == Direction.None || IsOppositeDirection(newDirection))
+            bool isOppositeDirection = DirectionService.IsOppositeDirection(this.CurrentDirection, newDirection);
+            if (newDirection == Direction.None || isOppositeDirection)
             {
                 return this.CurrentDirection;
             }
@@ -106,14 +108,7 @@
 
         protected virtual void InitialBody(int startPossitionRow, int length)
         {
-           
         }
-
-        private bool IsOppositeDirection(Direction newDirection) =>
-            (this.CurrentDirection == Direction.Up && newDirection == Direction.Down) ||
-            (this.CurrentDirection == Direction.Down && newDirection == Direction.Up) ||
-            (this.CurrentDirection == Direction.Left && newDirection == Direction.Right) ||
-            (this.CurrentDirection == Direction.Right && newDirection == Direction.Left);
 
         public bool WillCollideWithSelf(Coordinates nextHead)
         {

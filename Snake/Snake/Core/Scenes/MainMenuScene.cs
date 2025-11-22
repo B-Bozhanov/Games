@@ -1,6 +1,6 @@
-﻿namespace SnakeGame.Scenes
+﻿namespace SnakeGame.Core.Scenes
 {
-    using SnakeGame.Core;
+    using SnakeGame.Core.Scenes.Interfaces;
 
     public class MainMenuScene : IGameScene
     {

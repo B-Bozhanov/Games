@@ -14,8 +14,8 @@
 
         public BaseObjectFactory()
         {
-            this.startSeconds = 1;
-            this.endSeconds = 3;
+            this.startSeconds = 10;
+            this.endSeconds = 30;
             this.random = new Random();
         }
 
@@ -55,7 +55,7 @@
                 int row = this.random.Next(boardConfig.PlayableStartRow, boardConfig.TotalRows - 1);
                 int col = this.random.Next(boardConfig.PlayableStartCol, boardConfig.TotalCols - 1);
                 var candidate = new Coordinates(row, col);
-                var isBlocked = blockList[candidate.Row, candidate.Col] == true;
+                var isBlocked = blockList[candidate.Row, candidate.Col];
                 if (isBlocked) continue;
 
                 return candidate;

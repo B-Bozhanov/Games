@@ -1,29 +1,30 @@
 ﻿namespace SnakeGame.Input;
 
 using SnakeGame.GameObjects.Enums;
+using SnakeGame.Input.Enums;
 
 public sealed class ConsoleInputReader : IInputReader
 {
-    public Direction GetInput()
+    public KeyPressed GetInput()
     {
         if (!Console.KeyAvailable)
         {
-            return Direction.None;
+            return KeyPressed.None;
         }
 
         ConsoleKey key = Console.ReadKey(intercept: true).Key;
 
         return key switch
         {
-            ConsoleKey.LeftArrow => Direction.Left,
-            ConsoleKey.RightArrow => Direction.Right,
-            ConsoleKey.UpArrow => Direction.Up,
-            ConsoleKey.DownArrow => Direction.Down,
-            ConsoleKey.W => Direction.Up,
-            ConsoleKey.S => Direction.Down,
-            ConsoleKey.A => Direction.Left,
-            ConsoleKey.D => Direction.Right,
-            _=> Direction.None,
+            ConsoleKey.LeftArrow => KeyPressed.Left,
+            ConsoleKey.RightArrow => KeyPressed.Right,
+            ConsoleKey.UpArrow => KeyPressed.Up,
+            ConsoleKey.DownArrow => KeyPressed.Down,
+            ConsoleKey.W => KeyPressed.Up,
+            ConsoleKey.S => KeyPressed.Down,
+            ConsoleKey.A => KeyPressed.Left,
+            ConsoleKey.D => KeyPressed.Right,
+            _=> KeyPressed.None,
         };
     }
 }

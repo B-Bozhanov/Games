@@ -14,7 +14,7 @@
         {
             var start = new Coordinates(5, 10);
 
-            var result = start.Move(Direction.Up);
+            var result = start.Move(SnakeGame.GameObjects.Enums.Direction.Up);
 
             Assert.Equal(new Coordinates(4, 10), result);
         }
@@ -24,7 +24,7 @@
         {
             var start = new Coordinates(5, 10);
 
-            var result = start.Move(Direction.Down);
+            var result = start.Move(SnakeGame.GameObjects.Enums.Direction.Down);
 
             Assert.Equal(new Coordinates(6, 10), result);
         }
@@ -34,7 +34,7 @@
         {
             var start = new Coordinates(5, 10);
 
-            var result = start.Move(Direction.Left);
+            var result = start.Move(SnakeGame.GameObjects.Enums.Direction.Left);
 
             Assert.Equal(new Coordinates(5, 9), result);
         }
@@ -44,7 +44,7 @@
         {
             var start = new Coordinates(5, 10);
 
-            var result = start.Move(Direction.Right);
+            var result = start.Move(SnakeGame.GameObjects.Enums.Direction.Right);
 
             Assert.Equal(new Coordinates(5, 11), result);
         }

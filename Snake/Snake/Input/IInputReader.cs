@@ -5,6 +5,6 @@
 
     public interface IInputReader
     {
-        public Direction GetInput();
+        public KeyPressed GetInput();
     }
 }

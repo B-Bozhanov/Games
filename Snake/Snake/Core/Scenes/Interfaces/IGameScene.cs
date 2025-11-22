@@ -1,4 +1,4 @@
-﻿namespace SnakeGame.Core
+﻿namespace SnakeGame.Core.Scenes.Interfaces
 {
     public interface IGameScene
     {
