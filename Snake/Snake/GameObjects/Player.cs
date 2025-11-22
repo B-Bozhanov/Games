@@ -1,12 +1,20 @@
 ﻿namespace SnakeGame.GameObjects
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Text;
-    using System.Threading.Tasks;
+    using SnakeGame.Core.State;
+    using SnakeGame.GameObjects.Enums;
 
-    internal class Player
+    public class Player(int id, string name, SnakeId snakeId, PlayerType type)
     {
+        public int Id { get; } = id;
+
+        public string Name { get; } = name;
+
+        public SnakeId SnakeId { get; } = snakeId;
+
+        public PlayerType Type { get; } = type;
+
+        public double MoveIntervalSeconds { get; set; } = 0.15;
+
+        public int Score { get; set; }
     }
 }
