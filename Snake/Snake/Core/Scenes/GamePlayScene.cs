@@ -1,15 +1,14 @@
 ﻿namespace SnakeGame.Core.Scenes
 {
     using System.Collections.Generic;
-    using System.Text.Json;
 
     using Microsoft.Extensions.DependencyInjection;
 
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.Scenes.Interfaces;
+    using SnakeGame.Core.State;
     using SnakeGame.Extensions;
     using SnakeGame.GameObjects;
-    using SnakeGame.GameObjects.Abstractions.Base;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
     using SnakeGame.Input;
@@ -25,6 +24,11 @@
     /// </summary>
     public class GameplayScene : IGameScene
     {
+        private GameState? gameState;
+
+        private readonly SnakeId playerSnakeId = new(1);
+        private readonly SnakeId enemySnakeId = new(2);
+
         private readonly ISnake snake;
         private readonly ISnake snakeEnemy;
         private readonly IRenderer renderer;
@@ -75,6 +79,8 @@
         public void Run()
         {
             var food = this.InitialGame();
+
+            this.gameState = this.CreateInitialGameState(food);
 
             this.prevScene = (CellType[,])this.gameBoard.GetBoard.Clone();
             this.renderer.Draw(prevScene);
@@ -227,6 +233,61 @@
                 (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
 
             }
+        }
+
+        private GameState CreateInitialGameState(Food food)
+        {
+            var state = new GameState(this.gameBoard.BoardConfig);
+
+            // 1) Змии -> SnakeState
+            var playerSnakeState = new SnakeState(
+                this.playerSnakeId,
+                this.snake.Body,
+                this.snake.CurrentDirection);
+
+            var enemySnakeState = new SnakeState(
+                this.enemySnakeId,
+                this.snakeEnemy.Body,
+                this.snakeEnemy.CurrentDirection);
+
+            state.Snakes[this.playerSnakeId] = playerSnakeState;
+            state.Snakes[this.enemySnakeId] = enemySnakeState;
+
+            // 2) Блокирани клетки за змии
+            foreach (var coord in this.snake.Body)
+            {
+                state.Occupied[coord.Row, coord.Col] = true;
+            }
+
+            foreach (var coord in this.snakeEnemy.Body)
+            {
+                state.Occupied[coord.Row, coord.Col] = true;
+            }
+
+            // 3) Храна -> FoodState
+            var foodState = new FoodState(
+                food.Coordinates,
+                food.LifeTime.TotalSeconds);
+
+            state.Food = foodState;
+            state.Occupied[food.Coordinates.Row, food.Coordinates.Col] = true;
+
+            // 4) Препятствия -> ObstacleState
+            foreach (var kvp in this.obstacles)
+            {
+                var coord = kvp.Key;
+                var obstacle = kvp.Value;
+
+                var obstacleState = new ObstacleState(
+                    coord,
+                    obstacle.LifeTime.TotalSeconds);
+
+                state.Obstacles[coord] = obstacleState;
+                state.Occupied[coord.Row, coord.Col] = true;
+            }
+
+            // Засега не пипаме TickCount / IsGameOver / WinnerSnakeId.
+            return state;
         }
 
 
