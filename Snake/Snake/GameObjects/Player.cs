@@ -1,20 +1,28 @@
 ﻿namespace SnakeGame.GameObjects
 {
     using SnakeGame.Core.State;
+    using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
 
-    public class Player(int id, string name, SnakeId snakeId, PlayerType type)
+    public sealed class Player(SnakeId snakeId, ISnake snake, string name, PlayerType type)
     {
-        public int Id { get; } = id;
+        public SnakeId Id { get; } = snakeId;
+
+        public Guid Id1 { get; } = Guid.NewGuid();
+
+        public ISnake Snake { get; } = snake;
 
         public string Name { get; } = name;
 
-        public SnakeId SnakeId { get; } = snakeId;
-
         public PlayerType Type { get; } = type;
 
+        public bool IsAlive { get; set; } = true;
+
         public double MoveIntervalSeconds { get; set; } = 0.15;
+
+        public double MoveTimer { get; set; } = 0;
 
         public int Score { get; set; }
     }
 }
+

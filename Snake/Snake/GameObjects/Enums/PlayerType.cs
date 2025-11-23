@@ -2,5 +2,7 @@
 {
     public enum PlayerType
     {
+        Human = 0,
+        Ai = 1,
     }
 }

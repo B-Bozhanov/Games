@@ -4,6 +4,7 @@
 
     using Microsoft.Extensions.DependencyInjection;
 
+    using SnakeGame.Core.GameLoop.ENums;
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.Scenes.Interfaces;
     using SnakeGame.Core.State;
@@ -26,11 +27,13 @@
     {
         private GameState? gameState;
 
-        private readonly SnakeId playerSnakeId = new(1);
-        private readonly SnakeId enemySnakeId = new(2);
+        private readonly GameMode gameMode;
 
-        private readonly ISnake snake;
-        private readonly ISnake snakeEnemy;
+        // Колекция от играчи (SnakeId -> SnakePlayer).
+        // Засега ще я ползваме само за да държим двамата играчи,
+        // но е готова за истински мултиплеър с N играча.
+        private readonly Dictionary<SnakeId, Player> players = [];
+
         private readonly IRenderer renderer;
         private readonly IObjectFactory objectFactory;
         private readonly int obstaclesCount = 2;
@@ -42,12 +45,11 @@
         // blockList keeps track of occupied cells (snake, food, obstacles).
         // Used by factories to guarantee valid spawn positions without scanning the board.
         private readonly bool[,] blockList;
+
         private CellType[,] prevScene;
         private CellType[,] currScene;
         private int currentSpeed = 1;
         private IDictionary<Coordinates, Obstacle> obstacles;
-        private readonly bool isAutoPlay = true;
-        private readonly bool isMultiPlayer = false;
 
         public GameplayScene(
                 IInputReader inputReader,
@@ -56,15 +58,13 @@
                 IObjectFactory objectFactory,
                 IGameBoard gameBoard,
                 ISnakeAiController aiController,
-                [FromKeyedServices("snake")] ISnake snake,
-                [FromKeyedServices("snakeEnimy")] ISnake snakeEnimy)
+                GameMode gameMode = GameMode.AiVsAi)
         {
+            this.gameMode = gameMode;
             this.inputReader = inputReader;
             this.gameTime = gameTime;
             this.renderer = renderer;
             this.objectFactory = objectFactory;
-            this.snake = snake;
-            this.snakeEnemy = snakeEnimy;
             this.gameBoard = gameBoard;
             this.aiController = aiController;
             var rows = this.gameBoard.BoardConfig.TotalRows;
@@ -74,8 +74,10 @@
             this.currScene = new CellType[rows, cols];
             this.obstacles = new Dictionary<Coordinates, Obstacle>();
         }
+
         private double snakeMoveIntervalSeconds = 0.15; // колко често да се мести
         private double snakeTimer = 0;
+
         public void Run()
         {
             var food = this.InitialGame();
@@ -90,139 +92,71 @@
                 // Maintain frame pacing (FPS control).
                 this.gameTime.Tick();
 
-                Direction direction = Direction.None;
-                Direction aiDirection = Direction.None;
-                Coordinates nextHead = new();
-                Coordinates enemyNextHead = new();
+                var keyPressed = KeyPressed.None;
 
-                if (this.isAutoPlay)
+                foreach (var kvp in this.players)
                 {
-                    aiDirection = this.aiController.GetNextDirection(
-                        this.gameBoard,
-                        this.snakeEnemy.HeadPossition,
-                        food.Coordinates,
-                        this.snakeEnemy.Body);
-                    enemyNextHead = this.snakeEnemy.GetNextHeadPossition(aiDirection);
-                    if (this.WillDie(enemyNextHead) || this.snakeEnemy.WillCollideWithSelf(enemyNextHead))
+
+                    var player = kvp.Value;
+                    var snake = player.Snake;
+                    if (!player.IsAlive)
                     {
-                        var reason = string.Empty;
-                        if (this.WillHitObstacle(enemyNextHead))
-                        {
-                            reason = "Hit Obstacle";
-                        }
-                        else if (this.snakeEnemy.WillCollideWithSelf(enemyNextHead))
-                        {
-                            reason = "Collide it self";
-                        }
-                        else
-                        {
-                            reason = "Hit Wall";
-                        }
-
-                        AiLogger.LogDeath(
-                              this.gameTime.CurrentFps,
-                              this.snakeEnemy.HeadPossition,
-                              enemyNextHead,
-                              reason);
-                        Console.Write("Enemy - Game Over");
-                        break;
-                    }
-                    snakeTimer += gameTime.DeltaTimeSeconds;
-
-
-                    if (snakeTimer >= snakeMoveIntervalSeconds)
-                    {
-                        this.UpdateSnake(aiDirection, this.snakeEnemy, enemyNextHead);
-                        snakeTimer = 0;
+                        continue;
                     }
 
-                    this.Eat(this.snakeEnemy, ref food, enemyNextHead);
+                    player.MoveTimer += this.gameTime.DeltaTimeSeconds;
+                    if (player.MoveTimer < player.MoveIntervalSeconds)
+                    {
+                        continue;
+                    }
+
+                    player.MoveTimer = 0;
+
+                    if (player.Type == PlayerType.Human)
+                    {
+                        keyPressed = this.inputReader.GetInput();
+                    }
+                    var direction = this.ResolveDirection(player, snake.CurrentDirection, food, keyPressed);
+                    var nextHead = snake.GetNextHeadPossition(direction);
+
+                    if (this.WillDie(nextHead) || snake.WillCollideWithSelf(nextHead))
+                    {
+                        player.IsAlive = false;
+                        continue;
+                    }
+
+
+                    // Keep obstacle count constant: remove expired ones and spawn replacements
+                    // using blockList to ensure valid positions.
+                    this.Eat(player, ref food, nextHead);
                     if (food.IsExpired)
                     {
                         food = this.UpdateFood(food);
                     }
-                    // Keep obstacle count constant: remove expired ones and spawn replacements
-                    // using blockList to ensure valid positions.
-                    this.UpdateObstacles();
-                    this.gameBoard.Add(this.snakeEnemy.Body, CellType.SnakeBody);
-                    this.gameBoard.Add(this.snakeEnemy.HeadPossition, this.snakeEnemy.NextHeadPossitionSymbol);
-                    this.gameBoard.Add(this.snakeEnemy.GetCurrentTailPossition, this.snakeEnemy.NextTailPossitionSymbol);
 
-                    if (!this.snakeEnemy.ShouldEat)
+                    this.UpdateObstacles();
+                    this.UpdateSnake(direction, snake, nextHead);
+
+
+                    this.gameBoard.Add(snake.Body, CellType.SnakeBody);
+                    this.gameBoard.Add(snake.HeadPossition, snake.NextHeadPossitionSymbol);
+                    this.gameBoard.Add(snake.GetCurrentTailPossition, snake.NextTailPossitionSymbol);
+
+                    if (!snake.ShouldEat)
                     {
-                        this.gameBoard.RemoveCellType(this.snakeEnemy.GetLastTailPossition);
+                        this.gameBoard.RemoveCellType(snake.GetLastTailPossition);
                     }
-                    Console.SetCursorPosition(3, 2);
-                    Console.Write($"Fps = {gameTime.CurrentFps}");
-                    var speed = snakeMoveIntervalSeconds;
+
+                    var speed = player.MoveIntervalSeconds;
                     Console.SetCursorPosition(100, 2);
                     Console.Write($"Speed = {speed:F2}");
                     Console.SetCursorPosition(45, 2);
-                    Console.Write($"Speed = {snakeTimer}");
-
+                    Console.Write($"Score = {player.Score}");
                 }
-                else if (isMultiPlayer)
-                {
-                    nextHead = this.snake.GetNextHeadPossition(direction);
-                    enemyNextHead = this.snakeEnemy.GetNextHeadPossition(aiDirection);
-                    if (this.WillDie(nextHead) || snake.WillCollideWithSelf(nextHead))
-                    {
-                        Console.Write("Game Over");
-                        break;
-                    }
-                    if (this.WillDie(enemyNextHead) || this.snakeEnemy.WillCollideWithSelf(enemyNextHead))
-                    {
-                        Console.Write("Enemy - Game Over");
-                        break;
-                    }
 
+                Console.SetCursorPosition(3, 2);
+                Console.Write($"Fps = {gameTime.CurrentFps}");
 
-                    this.UpdateSnake(direction, this.snake, nextHead);
-
-                    this.UpdateSnake(aiDirection, this.snakeEnemy, enemyNextHead);
-                    this.Eat(this.snake, ref food, nextHead);
-                    this.Eat(this.snakeEnemy, ref food, enemyNextHead);
-
-                    this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
-                    this.gameBoard.Add(nextHead, this.snake.NextHeadPossitionSymbol);
-                    this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
-
-                    this.gameBoard.Add(this.snakeEnemy.Body, CellType.SnakeBody);
-                    this.gameBoard.Add(enemyNextHead, this.snakeEnemy.NextHeadPossitionSymbol);
-                    this.gameBoard.Add(this.snakeEnemy.GetCurrentTailPossition, this.snakeEnemy.NextTailPossitionSymbol);
-
-                    if (!this.snakeEnemy.ShouldEat)
-                    {
-                        this.gameBoard.RemoveCellType(this.snakeEnemy.GetLastTailPossition);
-                    }
-                    if (!this.snake.ShouldEat)
-                    {
-                        this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
-                    }
-                }
-                else
-                {
-                    KeyPressed input = this.inputReader.GetInput();
-                    direction = DirectionService.GetByPressedKey(input);
-                    nextHead = this.snake.GetNextHeadPossition(direction);
-                    if (this.WillDie(nextHead) || snake.WillCollideWithSelf(nextHead))
-                    {
-                        Console.Write("Game Over");
-                        break;
-                    }
-
-
-                    this.UpdateSnake(direction, this.snake, nextHead);
-                    this.Eat(this.snake, ref food, nextHead);
-                    this.gameBoard.Add(this.snake.Body, CellType.SnakeBody);
-                    this.gameBoard.Add(nextHead, this.snake.NextHeadPossitionSymbol);
-                    this.gameBoard.Add(snake.GetCurrentTailPossition, this.snake.NextTailPossitionSymbol);
-
-                    if (!this.snake.ShouldEat)
-                    {
-                        this.gameBoard.RemoveCellType(this.snake.GetLastTailPossition);
-                    }
-                }
 
                 this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
 
@@ -231,38 +165,116 @@
 
                 // Swap buffers (prev ↔ curr) to enable flicker-free differential rendering.
                 (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
-
             }
+        }
+
+        private SnakeId GetSnakeId()
+        {
+            var random = new Random();
+            var id = random.Next(1, 1000);
+            return new SnakeId(id);
+        }
+
+        private void InitializePlayers()
+        {
+            switch (this.gameMode)
+            {
+                case GameMode.SinglePlayer: 
+                    var id1 = this.GetSnakeId();
+                    this.players[id1] = new Player(
+                        name: "Player1",
+                        snakeId: id1,
+                        type: PlayerType.Human,
+                        snake: new Snake());
+                    break;
+                case GameMode.SingleAi:
+                    var id2 = this.GetSnakeId();
+                    this.players[id2] = new Player(
+                        name: "Ai",
+                        snakeId: id2,
+                        type: PlayerType.Ai,
+                        snake: new SnakeEnimy());
+                    break;
+                case GameMode.PlayerVsAi:
+                    var pId = this.GetSnakeId();
+                    this.players[pId] = new Player(
+                        name: "Player",
+                        snakeId: pId,
+                        type: PlayerType.Human,
+                        snake: new Snake());
+                    var aiId = this.GetSnakeId();
+                    this.players[aiId] = new Player(
+                        name: "AI",
+                        snakeId: aiId,
+                        type: PlayerType.Ai,
+                        snake: new SnakeEnimy());
+                    break;
+
+                case GameMode.AiVsAi:
+                    var ai1 = this.GetSnakeId();
+                    this.players[ai1] = new Player(
+                        name: "AI 1",
+                        snakeId: ai1,
+                        type: PlayerType.Ai,
+                        snake: new Snake());
+
+                    var ai2 = this.GetSnakeId();
+                    this.players[ai2] = new Player(
+                        name: "AI 2",
+                        snakeId: ai2,
+                        type: PlayerType.Ai,
+                        snake: new SnakeEnimy());
+                    break;
+
+                case GameMode.PlayerVsPlayer:
+                    var p1 = this.GetSnakeId();
+                    this.players[p1] = new Player(
+                        name: "Player 1",
+                        snakeId: p1,
+                        type: PlayerType.Human,
+                        snake: new Snake());
+
+                    var p2 = this.GetSnakeId();
+                    this.players[p2] = new Player(
+                        name: "Player 2",
+                        snakeId: p2,
+                        type: PlayerType.Human,
+                        snake: new SnakeEnimy());
+                    break;
+            }
+        }
+
+        private Direction ResolveDirection(Player player, Direction lastDirection, Food? food, KeyPressed keyPressed = KeyPressed.None)
+        {
+            // В бъдеще тук може да вкараме и GameMode, ако ти трябва различно поведение.
+            if (player.Type == PlayerType.Human)
+            {
+                if (keyPressed == KeyPressed.None)
+                {
+                    return lastDirection;
+                }
+                var direction = DirectionService.GetByPressedKey(keyPressed);
+                return direction;
+            }
+
+            if (player.Type == PlayerType.Ai)
+            {
+                var direction = this.aiController.GetNextDirection(
+                    this.gameBoard,
+                    player.Snake.HeadPossition,
+                    food!.Coordinates,
+                    player.Snake.Body);
+
+                return direction;
+            }
+
+            return lastDirection;
         }
 
         private GameState CreateInitialGameState(Food food)
         {
             var state = new GameState(this.gameBoard.BoardConfig);
 
-            // 1) Змии -> SnakeState
-            var playerSnakeState = new SnakeState(
-                this.playerSnakeId,
-                this.snake.Body,
-                this.snake.CurrentDirection);
-
-            var enemySnakeState = new SnakeState(
-                this.enemySnakeId,
-                this.snakeEnemy.Body,
-                this.snakeEnemy.CurrentDirection);
-
-            state.Snakes[this.playerSnakeId] = playerSnakeState;
-            state.Snakes[this.enemySnakeId] = enemySnakeState;
-
-            // 2) Блокирани клетки за змии
-            foreach (var coord in this.snake.Body)
-            {
-                state.Occupied[coord.Row, coord.Col] = true;
-            }
-
-            foreach (var coord in this.snakeEnemy.Body)
-            {
-                state.Occupied[coord.Row, coord.Col] = true;
-            }
 
             // 3) Храна -> FoodState
             var foodState = new FoodState(
@@ -290,7 +302,6 @@
             return state;
         }
 
-
         private void Block(Coordinates coordinates)
             => this.blockList[coordinates.Row, coordinates.Col] = true;
 
@@ -312,13 +323,14 @@
         {
             this.gameBoard.CreateBoard();
 
-            this.gameBoard.Add(snake.Body);
-            this.Block(this.snake.Body);
+            this.InitializePlayers();
 
-            if (this.isAutoPlay || this.isMultiPlayer)
+            foreach (var kvp in this.players)
             {
-                this.gameBoard.Add(snakeEnemy.Body);
-                this.Block(this.snakeEnemy.Body);
+                var snake = kvp.Value.Snake;
+                this.gameBoard.Add(snake.Body);
+                this.Block(snake.Body);
+
             }
 
             var food = this.objectFactory.CreateFood(
@@ -337,21 +349,24 @@
             this.gameBoard.Add(food.Coordinates, CellType.Food);
             this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
 
+
             return food;
         }
 
         private bool IsBlocked(Coordinates coordinates)
             => this.blockList[coordinates.Row, coordinates.Col];
 
-        private void Eat(ISnake snake, ref Food food, Coordinates nextHead)
+        private void Eat(Player player, ref Food food, Coordinates nextHead)
         {
             if (nextHead == food!.Coordinates)
             {
-                food = this.HandleFoodEaten(food, snake);
-                if (this.snakeMoveIntervalSeconds > 0.01)
+                food = this.HandleFoodEaten(food, player.Snake);
+                if (player.MoveIntervalSeconds > 0.01)
                 {
-                    this.snakeMoveIntervalSeconds -= 0.01;
+                    player.MoveIntervalSeconds -= 0.01;
                 }
+
+                player.Score++;
             }
         }
 

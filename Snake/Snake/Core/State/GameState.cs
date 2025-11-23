@@ -17,7 +17,7 @@
 
         public long TickCount { get; set; }
 
-        public bool IsGameOver { get; set; }
+        public bool IsGameOver { get; set; } = false;
 
         public SnakeId? WinnerSnakeId { get; set; }
     }
