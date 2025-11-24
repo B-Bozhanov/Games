@@ -59,7 +59,7 @@
                 IGameBoard gameBoard,
                 ISnakeAiController aiController,
                 IGameEngine gameEngine,
-                GameMode gameMode = GameMode.SinglePlayer)
+                GameMode gameMode = GameMode.SingleAi)
         {
             this.gameMode = gameMode;
             this.inputReader = inputReader;
@@ -87,13 +87,10 @@
             this.prevScene = (CellType[,])this.gameBoard.GetBoard.Clone();
             this.renderer.Draw(prevScene);
 
-            while (true)
+            while (!this.gameState.IsGameOver)
             {
                 this.gameTime.Tick();
-
-                var keyPressed = KeyPressed.None;
-
-
+                var test = this.GetDecisions();
                 this.gameEngine.FixedUpdate(this.gameState, this.GetDecisions(), this.gameTime.DeltaTimeSeconds);
 
 
@@ -111,7 +108,7 @@
             }
         }
 
-        private IReadOnlyDictionary<SnakeId, Direction> GetDecisions()
+        private Dictionary<SnakeId, Direction> GetDecisions()
         {
             var players = this.gameState.Players;
             var dicisions = new Dictionary<SnakeId, Direction>();
@@ -226,6 +223,11 @@
                 if (keyPressed == KeyPressed.None)
                 {
                     return lastDirection;
+                }
+
+                if (player.MoveTimer >= player.MoveIntervalSeconds)
+                {
+                    keyPressed = this.inputReader.GetInput();
                 }
                 var direction = DirectionService.GetByPressedKey(keyPressed);
                 return direction;

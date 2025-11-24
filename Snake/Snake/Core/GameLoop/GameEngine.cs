@@ -48,7 +48,7 @@
                 if (this.WillDie(nextHead) || player.Snake.WillCollideWithSelf(nextHead))
                 {
                     player.IsAlive = false;
-                    continue;
+                    gameState.IsGameOver = true;
                 }
 
                 this.Eat(player, ref food, nextHead);
@@ -69,6 +69,8 @@
                 {
                     this.gameBoard.RemoveCellType(player.Snake.GetLastTailPossition);
                 }
+
+                gameState.Food = food;
             }
         }
 
