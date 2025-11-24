@@ -275,11 +275,7 @@
             return null!;
         }
 
-        private Food HandleFoodEaten(Food oldFood, ISnake snake)
-        {
-            snake.Eat();
-            return this.UpdateFood(oldFood);
-        }
+       
 
         private Food InitialGame()
         {
@@ -315,31 +311,7 @@
             return food;
         }
 
-        private void Eat(Player player, ref Food food, Coordinates nextHead)
-        {
-            if (nextHead == food!.Coordinates)
-            {
-                food = this.HandleFoodEaten(food, player.Snake);
-                if (player.MoveIntervalSeconds > 0.01)
-                {
-                    player.MoveIntervalSeconds -= 0.01;
-                }
-
-                player.Score++;
-            }
-        }
-
-        private Food UpdateFood(Food oldFood)
-        {
-            this.gameBoard.RemoveCellType(oldFood.Coordinates);
-            this.gameState!.UnBlock(oldFood.Coordinates);
-
-            var newFood = this.objectFactory.CreateFood(this.gameBoard.BoardConfig, blockList);
-            this.gameBoard.Add(newFood.Coordinates, CellType.Food);
-            this.gameState.Block(newFood.Coordinates);
-
-            return newFood;
-        }
+       
 
         private void UpdateObstacles()
         {
