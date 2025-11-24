@@ -49,7 +49,6 @@
         private CellType[,] prevScene;
         private CellType[,] currScene;
         private int currentSpeed = 1;
-        private IDictionary<Coordinates, Obstacle> obstacles;
 
         public GameplayScene(
                 IInputReader inputReader,
@@ -72,7 +71,6 @@
             this.blockList = new bool[rows, cols];
             this.prevScene = new CellType[rows, cols];
             this.currScene = new CellType[rows, cols];
-            this.obstacles = new Dictionary<Coordinates, Obstacle>();
 
             this.gameState = new(this.gameBoard.BoardConfig);
         }
@@ -275,8 +273,6 @@
             return null!;
         }
 
-       
-
         private Food InitialGame()
         {
             this.gameBoard.CreateBoard();
@@ -296,12 +292,12 @@
                 this.blockList);
             this.gameState!.Block(food.Coordinates);
 
-            this.obstacles = this.objectFactory.CreateObstacles(
+            this.gameState.Obstacles = this.objectFactory.CreateObstacles(
                 this.obstaclesCount,
                 this.gameBoard.BoardConfig,
                 this.blockList);
 
-            var obsCoordinates = this.obstacles.Keys as IReadOnlyCollection<Coordinates>;
+            var obsCoordinates = this.gameState.Obstacles.Keys as IReadOnlyCollection<Coordinates>;
             this.gameState.Block(obsCoordinates!);
 
             this.gameBoard.Add(food.Coordinates, CellType.Food);
@@ -310,53 +306,5 @@
 
             return food;
         }
-
-       
-
-        private void UpdateObstacles()
-        {
-            var expiredKeys = new List<Coordinates>();
-
-            foreach (var o in this.obstacles)
-            {
-                if (o.Value.IsExpired)
-                {
-                    this.gameBoard.RemoveCellType(o.Key);
-                    this.gameState!.UnBlock(o.Key);
-                    expiredKeys.Add(o.Key);
-                }
-            }
-
-            if (expiredKeys.Count == 0) return;
-
-            this.obstacles.RemoveRange(expiredKeys);
-
-            var newObstacles = this.objectFactory.CreateObstacles(
-                expiredKeys.Count,
-                this.gameBoard.BoardConfig,
-                this.blockList);
-
-            foreach (var kvp in newObstacles)
-            {
-                this.obstacles.Add(kvp);
-                this.gameState!.Block(kvp.Key);
-                this.gameBoard.Add(kvp.Key, CellType.Obstacle);
-            }
-        }
-
-        private void UpdateSnake(Direction direction, ISnake snake, Coordinates nextHead)
-        {
-            this.gameState!.UnBlock(snake.Body);
-            snake.Move(direction);
-            this.gameState!.Block(snake.Body);
-            this.gameState!.Block(nextHead);
-        }
-
-        private bool WillDie(Coordinates nextHead)
-                 => this.WillHitObstacle(nextHead)
-                 || !nextHead.IsInRange(this.gameBoard.BoardConfig.TotalRows, this.gameBoard.BoardConfig.TotalCols);
-
-        private bool WillHitObstacle(Coordinates nextHead)
-            => this.obstacles.ContainsKey(key: nextHead);
     }
 }

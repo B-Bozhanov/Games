@@ -4,6 +4,7 @@
 
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.State;
+    using SnakeGame.Extensions;
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
@@ -12,12 +13,15 @@
     {
         private readonly IGameBoard gameBoard;
         private readonly IObjectFactory objectFactory;
+        private IDictionary<Coordinates, Obstacle> obstacles;
         private GameState? gameState;
 
         public GameEngine(IGameBoard gameBoard, IObjectFactory objectFactory)
         {
             this.gameBoard = gameBoard;
             this.objectFactory = objectFactory;
+
+            this.obstacles = new Dictionary<Coordinates, Obstacle>();
         }
 
         public void FixedUpdate(GameState gameState, IReadOnlyDictionary<SnakeId, Direction> decisions, double deltaSeconds)
@@ -57,5 +61,51 @@
 
             return newFood;
         }
+
+        private void UpdateObstacles()
+        {
+            var expiredKeys = new List<Coordinates>();
+
+            foreach (var o in this.obstacles)
+            {
+                if (o.Value.IsExpired)
+                {
+                    this.gameBoard.RemoveCellType(o.Key);
+                    this.gameState!.UnBlock(o.Key);
+                    expiredKeys.Add(o.Key);
+                }
+            }
+
+            if (expiredKeys.Count == 0) return;
+
+            this.obstacles.RemoveRange(expiredKeys);
+
+            var newObstacles = this.objectFactory.CreateObstacles(
+                expiredKeys.Count,
+                this.gameBoard.BoardConfig,
+                this.gameState!.BlockList);
+
+            foreach (var kvp in newObstacles)
+            {
+                this.obstacles.Add(kvp);
+                this.gameState!.Block(kvp.Key);
+                this.gameBoard.Add(kvp.Key, CellType.Obstacle);
+            }
+        }
+
+        private void UpdateSnake(Direction direction, ISnake snake, Coordinates nextHead)
+        {
+            this.gameState!.UnBlock(snake.Body);
+            snake.Move(direction);
+            this.gameState!.Block(snake.Body);
+            this.gameState!.Block(nextHead);
+        }
+
+        private bool WillDie(Coordinates nextHead)
+                 => this.WillHitObstacle(nextHead)
+                 || !nextHead.IsInRange(this.gameBoard.BoardConfig.TotalRows, this.gameBoard.BoardConfig.TotalCols);
+
+        private bool WillHitObstacle(Coordinates nextHead)
+            => this.obstacles.ContainsKey(key: nextHead);
     }
 }
