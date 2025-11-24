@@ -1,6 +1,7 @@
 ﻿namespace SnakeGame.Core.GameLoop
 {
     using System.Collections.Generic;
+    using System.Xml.Linq;
 
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.State;
@@ -8,6 +9,7 @@
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
+    using SnakeGame.Input.Enums;
 
     public sealed class GameEngine : IGameEngine
     {
@@ -27,7 +29,47 @@
         public void FixedUpdate(GameState gameState, IReadOnlyDictionary<SnakeId, Direction> decisions, double deltaSeconds)
         {
             this.gameState = gameState;
-            throw new NotImplementedException();
+            var players = gameState.Players;
+            var food = gameState.Food!;
+
+            foreach (var (id, player) in players)
+            {
+                player.MoveTimer += deltaSeconds;
+                if (player.MoveTimer < player.MoveIntervalSeconds)
+                {
+                    continue;
+                }
+
+                player.MoveTimer = 0;
+
+                var direction = decisions[id];
+                var nextHead = player.Snake.GetNextHeadPossition(direction);
+
+                if (this.WillDie(nextHead) || player.Snake.WillCollideWithSelf(nextHead))
+                {
+                    player.IsAlive = false;
+                    continue;
+                }
+
+                this.Eat(player, ref food, nextHead);
+                if (food.IsExpired)
+                {
+                    food = this.UpdateFood(food);
+                }
+
+                this.UpdateObstacles();
+                this.UpdateSnake(direction, player.Snake, nextHead);
+
+
+                this.gameBoard.Add(player.Snake.Body, CellType.SnakeBody);
+                this.gameBoard.Add(player.Snake.HeadPossition, player.Snake.NextHeadPossitionSymbol);
+                this.gameBoard.Add(player.Snake.GetCurrentTailPossition, player.Snake.NextTailPossitionSymbol);
+
+                if (!player.Snake.ShouldEat)
+                {
+                    this.gameBoard.RemoveCellType(player.Snake.GetLastTailPossition);
+                }
+            }
         }
 
         private void Eat(Player player, ref Food food, Coordinates nextHead)

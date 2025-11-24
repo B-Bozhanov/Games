@@ -41,6 +41,7 @@
         private readonly IGameTime gameTime;
         private readonly IGameBoard gameBoard;
         private readonly ISnakeAiController aiController;
+        private readonly IGameEngine gameEngine;
 
         // blockList keeps track of occupied cells (snake, food, obstacles).
         // Used by factories to guarantee valid spawn positions without scanning the board.
@@ -57,7 +58,8 @@
                 IObjectFactory objectFactory,
                 IGameBoard gameBoard,
                 ISnakeAiController aiController,
-                GameMode gameMode = GameMode.SingleAi)
+                IGameEngine gameEngine,
+                GameMode gameMode = GameMode.SinglePlayer)
         {
             this.gameMode = gameMode;
             this.inputReader = inputReader;
@@ -66,6 +68,7 @@
             this.objectFactory = objectFactory;
             this.gameBoard = gameBoard;
             this.aiController = aiController;
+            this.gameEngine = gameEngine;
             var rows = this.gameBoard.BoardConfig.TotalRows;
             var cols = this.gameBoard.BoardConfig.TotalCols;
             this.blockList = new bool[rows, cols];
@@ -86,70 +89,13 @@
 
             while (true)
             {
-                // Maintain frame pacing (FPS control).
                 this.gameTime.Tick();
 
                 var keyPressed = KeyPressed.None;
 
-                foreach (var kvp in this.gameState.Players)
-                {
 
-                    var player = kvp.Value;
-                    var snake = player.Snake;
-                    if (!player.IsAlive)
-                    {
-                        continue;
-                    }
+                this.gameEngine.FixedUpdate(this.gameState, this.GetDecisions(), this.gameTime.DeltaTimeSeconds);
 
-                    player.MoveTimer += this.gameTime.DeltaTimeSeconds;
-                    if (player.MoveTimer < player.MoveIntervalSeconds)
-                    {
-                        continue;
-                    }
-
-                    player.MoveTimer = 0;
-
-                    if (player.Type == PlayerType.Human)
-                    {
-                        keyPressed = this.inputReader.GetInput();
-                    }
-                    var direction = this.ResolveDirection(player, snake.CurrentDirection, food, keyPressed);
-                    var nextHead = snake.GetNextHeadPossition(direction);
-
-                    if (this.WillDie(nextHead) || snake.WillCollideWithSelf(nextHead))
-                    {
-                        player.IsAlive = false;
-                        continue;
-                    }
-
-
-                    // Keep obstacle count constant: remove expired ones and spawn replacements
-                    // using blockList to ensure valid positions.
-                    this.Eat(player, ref food, nextHead);
-                    if (food.IsExpired)
-                    {
-                        food = this.UpdateFood(food);
-                    }
-
-                    this.UpdateObstacles();
-                    this.UpdateSnake(direction, snake, nextHead);
-
-
-                    this.gameBoard.Add(snake.Body, CellType.SnakeBody);
-                    this.gameBoard.Add(snake.HeadPossition, snake.NextHeadPossitionSymbol);
-                    this.gameBoard.Add(snake.GetCurrentTailPossition, snake.NextTailPossitionSymbol);
-
-                    if (!snake.ShouldEat)
-                    {
-                        this.gameBoard.RemoveCellType(snake.GetLastTailPossition);
-                    }
-
-                    var speed = player.MoveIntervalSeconds;
-                    Console.SetCursorPosition(100, 2);
-                    Console.Write($"Speed = {speed:F2}");
-                    Console.SetCursorPosition(45, 2);
-                    Console.Write($"Score = {player.Score}");
-                }
 
                 Console.SetCursorPosition(3, 2);
                 Console.Write($"Fps = {gameTime.CurrentFps}");
@@ -163,6 +109,37 @@
                 // Swap buffers (prev ↔ curr) to enable flicker-free differential rendering.
                 (this.currScene, this.prevScene) = (this.prevScene, this.currScene);
             }
+        }
+
+        private IReadOnlyDictionary<SnakeId, Direction> GetDecisions()
+        {
+            var players = this.gameState.Players;
+            var dicisions = new Dictionary<SnakeId, Direction>();
+
+            foreach (var (id, player) in players)
+            {
+                //if (player.Type == PlayerType.Human)
+                //{
+                //    if (player.MoveTimer < player.MoveIntervalSeconds)
+                //    {
+                //        continue;
+                //    }
+
+                //    var direction = this.ResolveDirection(
+                //        player,
+                //        player.Snake.CurrentDirection,
+                //        this.gameState.Food);
+
+                //    dicisions[id] = direction;
+                //}
+
+                dicisions[id] = this.ResolveDirection(
+                    player,
+                    player.Snake.CurrentDirection,
+                    this.gameState.Food);
+            }
+
+            return dicisions;
         }
 
         private SnakeId GetSnakeId()
