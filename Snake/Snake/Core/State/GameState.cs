@@ -3,22 +3,48 @@
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
 
-    public class GameState(IBoardConfig boardConfig)
+    public sealed class GameState(IBoardConfig boardConfig)
     {
+
         public IBoardConfig BoardConfig { get; } = boardConfig;
 
-        public bool[,] Occupied { get; set; } = new bool[boardConfig.TotalRows, boardConfig.TotalCols];
+        public IDictionary<SnakeId, Player> Players { get; set; } = new Dictionary<SnakeId, Player>();
 
-        public Dictionary<SnakeId, SnakeState> Snakes { get; } = [];
+        public IDictionary<Coordinates, Obstacle> Obstacles { get; set; } = new Dictionary<Coordinates, Obstacle>();
 
-        public FoodState? Food { get; set; }
+        public Food? Food { get; set; }
 
-        public Dictionary<Coordinates, ObstacleState> Obstacles { get; } = [];
+        public bool[,] BlockList { get; } = new bool[boardConfig.TotalRows, boardConfig.TotalCols];
 
         public long TickCount { get; set; }
 
-        public bool IsGameOver { get; set; } = false;
+        public bool IsGameOver { get; set; }
 
         public SnakeId? WinnerSnakeId { get; set; }
+
+        public bool IsBlocked(Coordinates coordinates)
+          => this.BlockList[coordinates.Row, coordinates.Col];
+
+        public void UnBlock(Coordinates coordinates)
+                   => this.BlockList[coordinates.Row, coordinates.Col] = false;
+
+        public void UnBlock(IReadOnlyCollection<Coordinates> coordinates)
+        {
+            foreach (var c in coordinates)
+            {
+                this.BlockList[c.Row, c.Col] = false;
+            }
+        }
+
+        public void Block(Coordinates coordinates)
+           => this.BlockList[coordinates.Row, coordinates.Col] = true;
+
+        public void Block(IReadOnlyCollection<Coordinates> coordinates)
+        {
+            foreach (var c in coordinates)
+            {
+                this.BlockList[c.Row, c.Col] = true;
+            }
+        }
     }
 }

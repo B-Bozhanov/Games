@@ -25,6 +25,7 @@
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char, ConsoleColor>, ConsoleTheme>();
             services.AddScoped<ISnakeAiController, SnakeAiController>();
+            services.AddScoped<IGameEngine, GameEngine>();
             services.AddSingleton<IBoardConfig>(_ => new BoardConfig(
                 GlobalConstants.GameConstants.PlayableBoardWidth,
                 GlobalConstants.GameConstants.PlayableBoardHeight,
@@ -36,7 +37,7 @@
             services.AddKeyedScoped<IGameScene, MainMenuScene>("menu");
             services.AddKeyedScoped<IGameScene, PauseScene>("pause");
             services.AddKeyedScoped<ISnake, Snake>("snake");
-            services.AddKeyedScoped<ISnake, SnakeEnimy>("snakeEnimy");
+            services.AddKeyedScoped<ISnake, SnakeEnеmy>("snakeEnimy");
 
             return services;
         }

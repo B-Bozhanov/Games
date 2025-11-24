@@ -25,7 +25,7 @@
     /// </summary>
     public class GameplayScene : IGameScene
     {
-        private GameState? gameState;
+        private GameState gameState;
 
         private readonly GameMode gameMode;
 
@@ -58,7 +58,7 @@
                 IObjectFactory objectFactory,
                 IGameBoard gameBoard,
                 ISnakeAiController aiController,
-                GameMode gameMode = GameMode.AiVsAi)
+                GameMode gameMode = GameMode.SingleAi)
         {
             this.gameMode = gameMode;
             this.inputReader = inputReader;
@@ -73,16 +73,15 @@
             this.prevScene = new CellType[rows, cols];
             this.currScene = new CellType[rows, cols];
             this.obstacles = new Dictionary<Coordinates, Obstacle>();
-        }
 
-        private double snakeMoveIntervalSeconds = 0.15; // колко често да се мести
-        private double snakeTimer = 0;
+            this.gameState = new(this.gameBoard.BoardConfig);
+        }
 
         public void Run()
         {
             var food = this.InitialGame();
 
-            this.gameState = this.CreateInitialGameState(food);
+            this.gameState!.Food = food;
 
             this.prevScene = (CellType[,])this.gameBoard.GetBoard.Clone();
             this.renderer.Draw(prevScene);
@@ -94,7 +93,7 @@
 
                 var keyPressed = KeyPressed.None;
 
-                foreach (var kvp in this.players)
+                foreach (var kvp in this.gameState.Players)
                 {
 
                     var player = kvp.Value;
@@ -179,9 +178,9 @@
         {
             switch (this.gameMode)
             {
-                case GameMode.SinglePlayer: 
+                case GameMode.SinglePlayer:
                     var id1 = this.GetSnakeId();
-                    this.players[id1] = new Player(
+                    this.gameState.Players[id1] = new Player(
                         name: "Player1",
                         snakeId: id1,
                         type: PlayerType.Human,
@@ -189,57 +188,57 @@
                     break;
                 case GameMode.SingleAi:
                     var id2 = this.GetSnakeId();
-                    this.players[id2] = new Player(
+                    this.gameState.Players[id2] = new Player(
                         name: "Ai",
                         snakeId: id2,
                         type: PlayerType.Ai,
-                        snake: new SnakeEnimy());
+                        snake: new SnakeEnеmy());
                     break;
                 case GameMode.PlayerVsAi:
                     var pId = this.GetSnakeId();
-                    this.players[pId] = new Player(
+                    this.gameState.Players[pId] = new Player(
                         name: "Player",
                         snakeId: pId,
                         type: PlayerType.Human,
                         snake: new Snake());
                     var aiId = this.GetSnakeId();
-                    this.players[aiId] = new Player(
+                    this.gameState.Players[aiId] = new Player(
                         name: "AI",
                         snakeId: aiId,
                         type: PlayerType.Ai,
-                        snake: new SnakeEnimy());
+                        snake: new SnakeEnеmy());
                     break;
 
                 case GameMode.AiVsAi:
                     var ai1 = this.GetSnakeId();
-                    this.players[ai1] = new Player(
+                    this.gameState.Players[ai1] = new Player(
                         name: "AI 1",
                         snakeId: ai1,
                         type: PlayerType.Ai,
                         snake: new Snake());
 
                     var ai2 = this.GetSnakeId();
-                    this.players[ai2] = new Player(
+                    this.gameState.Players[ai2] = new Player(
                         name: "AI 2",
                         snakeId: ai2,
                         type: PlayerType.Ai,
-                        snake: new SnakeEnimy());
+                        snake: new SnakeEnеmy());
                     break;
 
                 case GameMode.PlayerVsPlayer:
                     var p1 = this.GetSnakeId();
-                    this.players[p1] = new Player(
+                    this.gameState.Players[p1] = new Player(
                         name: "Player 1",
                         snakeId: p1,
                         type: PlayerType.Human,
                         snake: new Snake());
 
                     var p2 = this.GetSnakeId();
-                    this.players[p2] = new Player(
+                    this.gameState.Players[p2] = new Player(
                         name: "Player 2",
                         snakeId: p2,
                         type: PlayerType.Human,
-                        snake: new SnakeEnimy());
+                        snake: new SnakeEnеmy());
                     break;
             }
         }
@@ -271,46 +270,9 @@
             return lastDirection;
         }
 
-        private GameState CreateInitialGameState(Food food)
+        private GameState CreateInitialGameState()
         {
-            var state = new GameState(this.gameBoard.BoardConfig);
-
-
-            // 3) Храна -> FoodState
-            var foodState = new FoodState(
-                food.Coordinates,
-                food.LifeTime.TotalSeconds);
-
-            state.Food = foodState;
-            state.Occupied[food.Coordinates.Row, food.Coordinates.Col] = true;
-
-            // 4) Препятствия -> ObstacleState
-            foreach (var kvp in this.obstacles)
-            {
-                var coord = kvp.Key;
-                var obstacle = kvp.Value;
-
-                var obstacleState = new ObstacleState(
-                    coord,
-                    obstacle.LifeTime.TotalSeconds);
-
-                state.Obstacles[coord] = obstacleState;
-                state.Occupied[coord.Row, coord.Col] = true;
-            }
-
-            // Засега не пипаме TickCount / IsGameOver / WinnerSnakeId.
-            return state;
-        }
-
-        private void Block(Coordinates coordinates)
-            => this.blockList[coordinates.Row, coordinates.Col] = true;
-
-        private void Block(IReadOnlyCollection<Coordinates> coordinates)
-        {
-            foreach (var c in coordinates)
-            {
-                this.blockList[c.Row, c.Col] = true;
-            }
+            return null!;
         }
 
         private Food HandleFoodEaten(Food oldFood, ISnake snake)
@@ -325,18 +287,18 @@
 
             this.InitializePlayers();
 
-            foreach (var kvp in this.players)
+            foreach (var kvp in this.gameState.Players)
             {
                 var snake = kvp.Value.Snake;
                 this.gameBoard.Add(snake.Body);
-                this.Block(snake.Body);
+                this.gameState!.Block(snake.Body);
 
             }
 
             var food = this.objectFactory.CreateFood(
                 this.gameBoard.BoardConfig,
                 this.blockList);
-            this.Block(food.Coordinates);
+            this.gameState!.Block(food.Coordinates);
 
             this.obstacles = this.objectFactory.CreateObstacles(
                 this.obstaclesCount,
@@ -344,7 +306,7 @@
                 this.blockList);
 
             var obsCoordinates = this.obstacles.Keys as IReadOnlyCollection<Coordinates>;
-            this.Block(obsCoordinates!);
+            this.gameState.Block(obsCoordinates!);
 
             this.gameBoard.Add(food.Coordinates, CellType.Food);
             this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
@@ -352,9 +314,6 @@
 
             return food;
         }
-
-        private bool IsBlocked(Coordinates coordinates)
-            => this.blockList[coordinates.Row, coordinates.Col];
 
         private void Eat(Player player, ref Food food, Coordinates nextHead)
         {
@@ -370,25 +329,14 @@
             }
         }
 
-        private void UnBlock(Coordinates coordinates)
-                    => this.blockList[coordinates.Row, coordinates.Col] = false;
-
-        private void UnBlock(IReadOnlyCollection<Coordinates> coordinates)
-        {
-            foreach (var c in coordinates)
-            {
-                this.blockList[c.Row, c.Col] = false;
-            }
-        }
-
         private Food UpdateFood(Food oldFood)
         {
             this.gameBoard.RemoveCellType(oldFood.Coordinates);
-            this.UnBlock(oldFood.Coordinates);
+            this.gameState!.UnBlock(oldFood.Coordinates);
 
             var newFood = this.objectFactory.CreateFood(this.gameBoard.BoardConfig, blockList);
             this.gameBoard.Add(newFood.Coordinates, CellType.Food);
-            this.Block(newFood.Coordinates);
+            this.gameState.Block(newFood.Coordinates);
 
             return newFood;
         }
@@ -402,7 +350,7 @@
                 if (o.Value.IsExpired)
                 {
                     this.gameBoard.RemoveCellType(o.Key);
-                    this.UnBlock(o.Key);
+                    this.gameState!.UnBlock(o.Key);
                     expiredKeys.Add(o.Key);
                 }
             }
@@ -419,17 +367,17 @@
             foreach (var kvp in newObstacles)
             {
                 this.obstacles.Add(kvp);
-                this.Block(kvp.Key);
+                this.gameState!.Block(kvp.Key);
                 this.gameBoard.Add(kvp.Key, CellType.Obstacle);
             }
         }
 
         private void UpdateSnake(Direction direction, ISnake snake, Coordinates nextHead)
         {
-            this.UnBlock(snake.Body);
+            this.gameState!.UnBlock(snake.Body);
             snake.Move(direction);
-            this.Block(snake.Body);
-            this.Block(nextHead);
+            this.gameState!.Block(snake.Body);
+            this.gameState!.Block(nextHead);
         }
 
         private bool WillDie(Coordinates nextHead)
