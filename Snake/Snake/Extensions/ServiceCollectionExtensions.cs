@@ -3,6 +3,8 @@
     using Microsoft.Extensions.DependencyInjection;
 
     using SnakeGame.Common;
+    using SnakeGame.Core.Controllers;
+    using SnakeGame.Core.Controllers.Interfaces;
     using SnakeGame.Core.GameLoop;
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.Scenes;
@@ -25,6 +27,7 @@
             services.AddScoped<IGameBoard, ConsoleGameBoard>();
             services.AddScoped<ITheme<char, ConsoleColor>, ConsoleTheme>();
             services.AddScoped<ISnakeAiController, SnakeAiController>();
+            services.AddScoped<ISnakeController, SnakeController>();
             services.AddScoped<IGameEngine, GameEngine>();
             services.AddSingleton<IBoardConfig>(_ => new BoardConfig(
                 GlobalConstants.GameConstants.PlayableBoardWidth,

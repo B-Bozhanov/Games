@@ -3,12 +3,13 @@
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
-    using SnakeGame.Input.Enums;
 
-    public sealed class GameState(IBoardConfig boardConfig)
+    public sealed class GameState(IGameBoard gameBoard)
     {
 
-        public IBoardConfig BoardConfig { get; } = boardConfig;
+        public IGameBoard GameBoard { get; set; } = gameBoard;
+
+        public IBoardConfig BoardConfig { get; } = gameBoard.BoardConfig;
 
         public IDictionary<SnakeId, Player> Players { get; set; } = new Dictionary<SnakeId, Player>();
 
@@ -16,7 +17,7 @@
 
         public Food? Food { get; set; }
 
-        public bool[,] BlockList { get; } = new bool[boardConfig.TotalRows, boardConfig.TotalCols];
+        public bool[,] BlockList { get; } = new bool[gameBoard.BoardConfig.TotalRows, gameBoard.BoardConfig.TotalCols];
 
         public long TickCount { get; set; }
 

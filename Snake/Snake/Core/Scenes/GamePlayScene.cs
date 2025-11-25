@@ -2,20 +2,14 @@
 {
     using System.Collections.Generic;
 
-    using Microsoft.Extensions.DependencyInjection;
-
     using SnakeGame.Core.GameLoop.ENums;
     using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.Scenes.Interfaces;
     using SnakeGame.Core.State;
-    using SnakeGame.Extensions;
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
-    using SnakeGame.Input;
-    using SnakeGame.Input.Enums;
     using SnakeGame.Rendering;
-    using SnakeGame.Services;
     using SnakeGame.SnakeAI;
 
     /// <summary>
@@ -25,63 +19,44 @@
     /// </summary>
     public class GameplayScene : IGameScene
     {
-        private GameState gameState;
-
+        private readonly IGameBoard gameBoard;
+        private readonly IGameEngine gameEngine;
         private readonly GameMode gameMode;
-
-        // Колекция от играчи (SnakeId -> SnakePlayer).
-        // Засега ще я ползваме само за да държим двамата играчи,
-        // но е готова за истински мултиплеър с N играча.
-        private readonly Dictionary<SnakeId, Player> players = [];
-
-        private readonly IRenderer renderer;
+        private readonly IGameTime gameTime;
         private readonly IObjectFactory objectFactory;
         private readonly int obstaclesCount = 2;
-        private readonly IInputReader inputReader;
-        private readonly IGameTime gameTime;
-        private readonly IGameBoard gameBoard;
-        private readonly ISnakeAiController aiController;
-        private readonly IGameEngine gameEngine;
-
-        // blockList keeps track of occupied cells (snake, food, obstacles).
-        // Used by factories to guarantee valid spawn positions without scanning the board.
-        private readonly bool[,] blockList;
-
-        private CellType[,] prevScene;
+        private readonly IRenderer renderer;
         private CellType[,] currScene;
-        private int currentSpeed = 1;
+        private GameState gameState;
+        private CellType[,] prevScene;
 
         public GameplayScene(
-                IInputReader inputReader,
                 IGameTime gameTime,
                 IRenderer renderer,
                 IObjectFactory objectFactory,
                 IGameBoard gameBoard,
-                ISnakeAiController aiController,
                 IGameEngine gameEngine,
                 GameMode gameMode = GameMode.SinglePlayer)
         {
             this.gameMode = gameMode;
-            this.inputReader = inputReader;
             this.gameTime = gameTime;
             this.renderer = renderer;
             this.objectFactory = objectFactory;
             this.gameBoard = gameBoard;
-            this.aiController = aiController;
             this.gameEngine = gameEngine;
             var rows = this.gameBoard.BoardConfig.TotalRows;
             var cols = this.gameBoard.BoardConfig.TotalCols;
             this.prevScene = new CellType[rows, cols];
             this.currScene = new CellType[rows, cols];
 
-            this.gameState = new(this.gameBoard.BoardConfig);
+            this.gameState = new(this.gameBoard);
         }
 
         public void Run()
         {
             var food = this.InitialGame();
 
-            this.gameState!.Food = food;
+            this.gameState.Food = food;
 
             this.prevScene = (CellType[,])this.gameBoard.GetBoard.Clone();
             this.renderer.Draw(prevScene);
@@ -89,17 +64,7 @@
             while (!this.gameState.IsGameOver)
             {
                 this.gameTime.Tick();
-
-                var direction = this.GetDecisions();
-                this.gameEngine.FixedUpdate(this.gameState, direction, this.gameTime.DeltaTimeSeconds);
-
-
-                Console.SetCursorPosition(3, 2);
-                Console.Write($"Fps = {gameTime.CurrentFps}");
-
-                Console.SetCursorPosition(44, 2);
-                Console.Write($"Fps = {this.gameState.PendingKey.ToString()}");
-
+                this.gameEngine.FixedUpdate(this.gameState, this.gameTime.DeltaTimeSeconds);
 
                 this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
 
@@ -111,42 +76,43 @@
             }
         }
 
-        private Dictionary<SnakeId, Direction> GetDecisions()
-        {
-            var players = this.gameState.Players;
-            var dicisions = new Dictionary<SnakeId, Direction>();
-
-            foreach (var (id, player) in players)
-            {
-                //if (player.Type == PlayerType.Human)
-                //{
-                //    if (player.MoveTimer < player.MoveIntervalSeconds)
-                //    {
-                //        continue;
-                //    }
-
-                //    var direction = this.ResolveDirection(
-                //        player,
-                //        player.Snake.CurrentDirection,
-                //        this.gameState.Food);
-
-                //    dicisions[id] = direction;
-                //}
-
-                dicisions[id] = this.ResolveDirection(
-                    player,
-                    player.Snake.CurrentDirection,
-                    this.gameState.Food);
-            }
-
-            return dicisions;
-        }
-
         private SnakeId GetSnakeId()
         {
             var random = new Random();
             var id = random.Next(1, 1000);
             return new SnakeId(id);
+        }
+
+        private Food InitialGame()
+        {
+            this.gameBoard.CreateBoard();
+
+            this.InitializePlayers();
+
+            foreach (var kvp in this.gameState.Players)
+            {
+                var snake = kvp.Value.Snake;
+                this.gameBoard.Add(snake.Body);
+                this.gameState!.Block(snake.Body);
+            }
+
+            var food = this.objectFactory.CreateFood(
+                this.gameBoard.BoardConfig,
+                this.gameState.BlockList);
+            this.gameState!.Block(food.Coordinates);
+
+            this.gameState.Obstacles = this.objectFactory.CreateObstacles(
+                this.obstaclesCount,
+                this.gameBoard.BoardConfig,
+                this.gameState.BlockList);
+
+            var obsCoordinates = this.gameState.Obstacles.Keys as IReadOnlyCollection<Coordinates>;
+            this.gameState.Block(obsCoordinates!);
+
+            this.gameBoard.Add(food.Coordinates, CellType.Food);
+            this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
+
+            return food;
         }
 
         private void InitializePlayers()
@@ -161,6 +127,7 @@
                         type: PlayerType.Human,
                         snake: new Snake());
                     break;
+
                 case GameMode.SingleAi:
                     var id2 = this.GetSnakeId();
                     this.gameState.Players[id2] = new Player(
@@ -169,6 +136,7 @@
                         type: PlayerType.Ai,
                         snake: new SnakeEnеmy());
                     break;
+
                 case GameMode.PlayerVsAi:
                     var pId = this.GetSnakeId();
                     this.gameState.Players[pId] = new Player(
@@ -216,75 +184,6 @@
                         snake: new SnakeEnеmy());
                     break;
             }
-        }
-
-        private Direction ResolveDirection(Player player, Direction lastDirection, Food? food, KeyPressed keyPressed = KeyPressed.None)
-        {
-            // В бъдеще тук може да вкараме и GameMode, ако ти трябва различно поведение.
-            if (player.Type == PlayerType.Human)
-            {
-                keyPressed = this.inputReader.GetInput();
-                if (keyPressed == KeyPressed.None)
-                {
-                    return lastDirection;
-                }
-
-                var direction = DirectionService.GetByPressedKey(keyPressed);
-                this.gameState.PendingKey = direction;
-                return direction;
-            }
-
-            if (player.Type == PlayerType.Ai)
-            {
-                var direction = this.aiController.GetNextDirection(
-                    this.gameBoard,
-                    player.Snake.HeadPossition,
-                    food!.Coordinates,
-                    player.Snake.Body);
-
-                return direction;
-            }
-
-            return lastDirection;
-        }
-
-        private GameState CreateInitialGameState()
-        {
-            return null!;
-        }
-
-        private Food InitialGame()
-        {
-            this.gameBoard.CreateBoard();
-
-            this.InitializePlayers();
-
-            foreach (var kvp in this.gameState.Players)
-            {
-                var snake = kvp.Value.Snake;
-                this.gameBoard.Add(snake.Body);
-                this.gameState!.Block(snake.Body);
-
-            }
-
-            var food = this.objectFactory.CreateFood(
-                this.gameBoard.BoardConfig,
-                this.gameState.BlockList);
-            this.gameState!.Block(food.Coordinates);
-
-            this.gameState.Obstacles = this.objectFactory.CreateObstacles(
-                this.obstaclesCount,
-                this.gameBoard.BoardConfig,
-                this.gameState.BlockList);
-
-            var obsCoordinates = this.gameState.Obstacles.Keys as IReadOnlyCollection<Coordinates>;
-            this.gameState.Block(obsCoordinates!);
-
-            this.gameBoard.Add(food.Coordinates, CellType.Food);
-            this.gameBoard.Add(obsCoordinates!, CellType.Obstacle);
-
-
-            return food;
         }
     }
 }
