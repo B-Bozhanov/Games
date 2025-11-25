@@ -59,7 +59,7 @@
                 IGameBoard gameBoard,
                 ISnakeAiController aiController,
                 IGameEngine gameEngine,
-                GameMode gameMode = GameMode.SingleAi)
+                GameMode gameMode = GameMode.SinglePlayer)
         {
             this.gameMode = gameMode;
             this.inputReader = inputReader;
@@ -71,7 +71,6 @@
             this.gameEngine = gameEngine;
             var rows = this.gameBoard.BoardConfig.TotalRows;
             var cols = this.gameBoard.BoardConfig.TotalCols;
-            this.blockList = new bool[rows, cols];
             this.prevScene = new CellType[rows, cols];
             this.currScene = new CellType[rows, cols];
 
@@ -90,12 +89,16 @@
             while (!this.gameState.IsGameOver)
             {
                 this.gameTime.Tick();
-                var test = this.GetDecisions();
-                this.gameEngine.FixedUpdate(this.gameState, this.GetDecisions(), this.gameTime.DeltaTimeSeconds);
+
+                var direction = this.GetDecisions();
+                this.gameEngine.FixedUpdate(this.gameState, direction, this.gameTime.DeltaTimeSeconds);
 
 
                 Console.SetCursorPosition(3, 2);
                 Console.Write($"Fps = {gameTime.CurrentFps}");
+
+                Console.SetCursorPosition(44, 2);
+                Console.Write($"Fps = {this.gameState.PendingKey.ToString()}");
 
 
                 this.currScene = (CellType[,])this.gameBoard.GetBoard.Clone();
@@ -220,16 +223,14 @@
             // В бъдеще тук може да вкараме и GameMode, ако ти трябва различно поведение.
             if (player.Type == PlayerType.Human)
             {
+                keyPressed = this.inputReader.GetInput();
                 if (keyPressed == KeyPressed.None)
                 {
                     return lastDirection;
                 }
 
-                if (player.MoveTimer >= player.MoveIntervalSeconds)
-                {
-                    keyPressed = this.inputReader.GetInput();
-                }
                 var direction = DirectionService.GetByPressedKey(keyPressed);
+                this.gameState.PendingKey = direction;
                 return direction;
             }
 
@@ -268,13 +269,13 @@
 
             var food = this.objectFactory.CreateFood(
                 this.gameBoard.BoardConfig,
-                this.blockList);
+                this.gameState.BlockList);
             this.gameState!.Block(food.Coordinates);
 
             this.gameState.Obstacles = this.objectFactory.CreateObstacles(
                 this.obstaclesCount,
                 this.gameBoard.BoardConfig,
-                this.blockList);
+                this.gameState.BlockList);
 
             var obsCoordinates = this.gameState.Obstacles.Keys as IReadOnlyCollection<Coordinates>;
             this.gameState.Block(obsCoordinates!);

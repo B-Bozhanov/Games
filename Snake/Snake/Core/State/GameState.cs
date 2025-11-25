@@ -2,6 +2,8 @@
 {
     using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Abstractions.Interfaces;
+    using SnakeGame.GameObjects.Enums;
+    using SnakeGame.Input.Enums;
 
     public sealed class GameState(IBoardConfig boardConfig)
     {
@@ -46,5 +48,7 @@
                 this.BlockList[c.Row, c.Col] = true;
             }
         }
+
+        public Direction PendingKey { get; set; }
     }
 }

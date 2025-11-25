@@ -42,7 +42,7 @@
 
                 player.MoveTimer = 0;
 
-                var direction = decisions[id];
+                var direction = gameState.PendingKey;
                 var nextHead = player.Snake.GetNextHeadPossition(direction);
 
                 if (this.WillDie(nextHead) || player.Snake.WillCollideWithSelf(nextHead))
@@ -110,7 +110,7 @@
         {
             var expiredKeys = new List<Coordinates>();
 
-            foreach (var o in this.obstacles)
+            foreach (var o in this.gameState.Obstacles)
             {
                 if (o.Value.IsExpired)
                 {
@@ -122,7 +122,7 @@
 
             if (expiredKeys.Count == 0) return;
 
-            this.obstacles.RemoveRange(expiredKeys);
+            this.gameState.Obstacles.RemoveRange(expiredKeys);
 
             var newObstacles = this.objectFactory.CreateObstacles(
                 expiredKeys.Count,
@@ -131,7 +131,7 @@
 
             foreach (var kvp in newObstacles)
             {
-                this.obstacles.Add(kvp);
+                this.gameState.Obstacles.Add(kvp);
                 this.gameState!.Block(kvp.Key);
                 this.gameBoard.Add(kvp.Key, CellType.Obstacle);
             }
@@ -150,6 +150,6 @@
                  || !nextHead.IsInRange(this.gameBoard.BoardConfig.TotalRows, this.gameBoard.BoardConfig.TotalCols);
 
         private bool WillHitObstacle(Coordinates nextHead)
-            => this.obstacles.ContainsKey(key: nextHead);
+            => this.gameState.Obstacles.ContainsKey(key: nextHead);
     }
 }
