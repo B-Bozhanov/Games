@@ -60,6 +60,8 @@ public sealed class GameEngine : IGameEngine
                 gameState.IsGameOver = true;
             }
 
+            UpdateSnake(gameState, direction, player.Snake, nextHead);
+
             Eat(gameState, player, ref food, nextHead);
             if (food.IsExpired)
             {
@@ -68,7 +70,6 @@ public sealed class GameEngine : IGameEngine
 
             this.UpdateObstacles(gameState);
 
-            UpdateSnake(gameState, direction, player.Snake, nextHead);
 
             gameState.GameBoard.Add(player.Snake.Body, CellType.SnakeBody);
             gameState.GameBoard.Add(player.Snake.HeadPossition, player.Snake.NextHeadPossitionSymbol);

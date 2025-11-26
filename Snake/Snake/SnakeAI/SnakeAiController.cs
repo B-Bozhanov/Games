@@ -207,6 +207,12 @@
                     path.Add(start);
                     path.Reverse();
 
+
+                    if (path.Count < 2)
+                    {
+                        return false;
+                    }
+
                     // path[0] = head, path[1] = първа стъпка
                     var stepDelta = path[1] - start;
                     direction = DirectionService.Get(stepDelta);
