@@ -14,7 +14,6 @@
 
         public Direction GetNextDirection(GetNextDirectionsContext context)
         {
-            // В бъдеще тук може да вкараме и GameMode, ако ти трябва различно поведение.
             if (context.Player.Type == PlayerType.Human)
             {
                 var keyPressed = this.inputReader.GetInput();

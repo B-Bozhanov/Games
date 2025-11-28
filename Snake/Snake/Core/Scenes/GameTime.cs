@@ -1,12 +1,12 @@
-﻿namespace SnakeGame.Core.GameLoop
+﻿namespace SnakeGame.Core.Scenes
 {
-    using SnakeGame.Core.GameLoop.Interfaces;
+    using SnakeGame.Core.Scenes.Interfaces;
 
     public sealed class GameTime : IGameTime
     {
         // === CONFIG ===
         // Update rate за FixedUpdate (много важно за multiplayer)
-        private const double FixedStepSeconds = 1.0 / 60.0; // 30 ticks/second
+        private const double FixedStepSeconds = 1.0 / 60.0; // 60 ticks/second
         // Може да го направиш и 60 → 1.0 / 60.0
 
         // === TIME TRACKING ===

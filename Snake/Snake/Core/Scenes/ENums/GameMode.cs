@@ -1,4 +1,4 @@
-﻿namespace SnakeGame.Core.GameLoop.ENums
+﻿namespace SnakeGame.Core.Scenes.ENums
 {
     public enum GameMode
     {

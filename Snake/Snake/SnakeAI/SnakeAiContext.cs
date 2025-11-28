@@ -11,10 +11,10 @@
     {
         public IGameBoard GameBoard => gameBoard;
 
-        public Coordinates Head { get; set; }
+        public Coordinates Head { get; set; } = snakeHead;
 
-        public Coordinates Food { get; set; }
+        public Coordinates Food { get; set; } = food;
 
-        public HashSet<Coordinates> Body { get; set; }
+        public HashSet<Coordinates> Body { get; set; } = [.. snakeBody];
     }
 }

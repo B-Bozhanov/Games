@@ -1,10 +1,10 @@
-﻿namespace SnakeGame.Core.GameLoop;
+﻿namespace SnakeGame.Core.Scenes;
 
 using System.Collections.Generic;
 
 using SnakeGame.Core.Controllers;
 using SnakeGame.Core.Controllers.Interfaces;
-using SnakeGame.Core.GameLoop.Interfaces;
+using SnakeGame.Core.Scenes.Interfaces;
 using SnakeGame.Core.State;
 using SnakeGame.Extensions;
 using SnakeGame.GameObjects;
@@ -14,15 +14,15 @@ using SnakeGame.GameObjects.Enums;
 public sealed class GameEngine : IGameEngine
 {
     private readonly IObjectFactory objectFactory;
-    private readonly ISnakeController controller;
-    private IDictionary<Coordinates, Obstacle> obstacles;
+    private readonly ISnakeController snakeController;
+    private readonly IDictionary<Coordinates, Obstacle> obstacles;
 
     public GameEngine(
         IObjectFactory objectFactory,
         ISnakeController controller)
     {
         this.objectFactory = objectFactory;
-        this.controller = controller;
+        this.snakeController = controller;
         this.obstacles = new Dictionary<Coordinates, Obstacle>();
     }
 
@@ -41,39 +41,17 @@ public sealed class GameEngine : IGameEngine
 
             player.MoveTimer = 0;
 
+            var context = GetDirectionsContext(gameState, food, player);
 
-            var context = new GetNextDirectionsContext
-                (
-                    GameBoard: gameState.GameBoard,
-                    Player: player,
-                    LastDirection: player.Snake.CurrentDirection,
-                    Food: food,
-                    GameState: gameState
-                );
-
-            var direction = this.controller.GetNextDirection(context);
+            var direction = this.snakeController.GetNextDirection(context);
             var nextHead = player.Snake.GetNextHeadPossition(direction);
 
-            if (this.WillDie(gameState, nextHead) || player.Snake.WillCollideWithSelf(nextHead))
-            {
-                player.IsAlive = false;
-                gameState.IsGameOver = true;
-            }
-
+            GameOver(gameState, player, nextHead);
             UpdateSnake(gameState, direction, player.Snake, nextHead);
-
             Eat(gameState, player, ref food, nextHead);
-            if (food.IsExpired)
-            {
-                food = this.UpdateFood(gameState, food);
-            }
-
             this.UpdateObstacles(gameState);
 
-
-            gameState.GameBoard.Add(player.Snake.Body, CellType.SnakeBody);
-            gameState.GameBoard.Add(player.Snake.HeadPossition, player.Snake.NextHeadPossitionSymbol);
-            gameState.GameBoard.Add(player.Snake.GetCurrentTailPossition, player.Snake.NextTailPossitionSymbol);
+            UpdateGameBoard(gameState, player);
 
             if (!player.Snake.ShouldEat)
             {
@@ -84,8 +62,37 @@ public sealed class GameEngine : IGameEngine
         }
     }
 
+    private static void UpdateGameBoard(GameState gameState, Player player)
+    {
+        gameState.GameBoard.Add(player.Snake.Body, CellType.SnakeBody);
+        gameState.GameBoard.Add(player.Snake.HeadPossition, player.Snake.NextHeadPossitionSymbol);
+        gameState.GameBoard.Add(player.Snake.GetCurrentTailPossition, player.Snake.NextTailPossitionSymbol);
+    }
+
+    private static GetNextDirectionsContext GetDirectionsContext(GameState gameState, Food food, Player player) => new
+            (
+                GameBoard: gameState.GameBoard,
+                Player: player,
+                LastDirection: player.Snake.CurrentDirection,
+                Food: food,
+                GameState: gameState
+            );
+
+    private static void GameOver(GameState gameState, Player player, Coordinates nextHead)
+    {
+        if (WillDie(gameState, nextHead) || player.Snake.WillCollideWithSelf(nextHead))
+        {
+            player.IsAlive = false;
+            gameState.IsGameOver = true;
+        }
+    }
+
     private void Eat(GameState gameState, Player player, ref Food food, Coordinates nextHead)
     {
+        if (food.IsExpired)
+        {
+            food = this.UpdateFood(gameState, food);
+        }
         if (nextHead == food!.Coordinates)
         {
             food = this.HandleFoodEaten(gameState, food, player.Snake);
@@ -155,7 +162,7 @@ public sealed class GameEngine : IGameEngine
         gameState!.Block(nextHead);
     }
 
-    private bool WillDie(GameState gameState, Coordinates nextHead)
+    private static bool WillDie(GameState gameState, Coordinates nextHead)
              => WillHitObstacle(gameState, nextHead)
              || !nextHead.IsInRange(gameState.BoardConfig.TotalRows, gameState.BoardConfig.TotalCols);
 

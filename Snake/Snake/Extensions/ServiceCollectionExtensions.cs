@@ -5,8 +5,6 @@
     using SnakeGame.Common;
     using SnakeGame.Core.Controllers;
     using SnakeGame.Core.Controllers.Interfaces;
-    using SnakeGame.Core.GameLoop;
-    using SnakeGame.Core.GameLoop.Interfaces;
     using SnakeGame.Core.Scenes;
     using SnakeGame.Core.Scenes.Interfaces;
     using SnakeGame.GameObjects;
@@ -39,8 +37,6 @@
             services.AddKeyedScoped<IGameScene, GameplayScene>("gamePlay");
             services.AddKeyedScoped<IGameScene, MainMenuScene>("menu");
             services.AddKeyedScoped<IGameScene, PauseScene>("pause");
-            services.AddKeyedScoped<ISnake, Snake>("snake");
-            services.AddKeyedScoped<ISnake, SnakeEnеmy>("snakeEnimy");
 
             return services;
         }

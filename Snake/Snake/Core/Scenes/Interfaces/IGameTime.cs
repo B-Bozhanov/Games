@@ -1,4 +1,4 @@
-﻿namespace SnakeGame.Core.GameLoop.Interfaces
+﻿namespace SnakeGame.Core.Scenes.Interfaces
 {
     public interface IGameTime
     {

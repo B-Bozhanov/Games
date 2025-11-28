@@ -2,8 +2,7 @@
 
 using System.Collections.Generic;
 
-using SnakeGame.Core.GameLoop.ENums;
-using SnakeGame.Core.GameLoop.Interfaces;
+using SnakeGame.Core.Scenes.ENums;
 using SnakeGame.Core.Scenes.Interfaces;
 using SnakeGame.Core.State;
 using SnakeGame.GameObjects;
@@ -22,8 +21,7 @@ public class GameplayScene : IGameScene
 
     private CellType[,] currScene;
     private CellType[,] prevScene;
-    private GameState gameState;
-    private readonly Random random;
+    private readonly GameState gameState;
     private readonly GameMode gameMode;
     private readonly IGameBoard gameBoard;
     private readonly IGameEngine gameEngine;
@@ -38,7 +36,7 @@ public class GameplayScene : IGameScene
             IObjectFactory objectFactory,
             IGameBoard gameBoard,
             IGameEngine gameEngine,
-            GameMode gameMode = GameMode.SingleAi)
+            GameMode gameMode = GameMode.SinglePlayer)
     {
         this.gameMode = gameMode;
         this.gameTime = gameTime;
@@ -47,12 +45,8 @@ public class GameplayScene : IGameScene
         this.gameBoard = gameBoard;
         this.gameEngine = gameEngine;
         this.gameState = new(this.gameBoard);
-        this.random = new Random();
 
-        var rows = this.gameBoard.BoardConfig.TotalRows;
-        var cols = this.gameBoard.BoardConfig.TotalCols;
-        this.prevScene = new CellType[rows, cols];
-        this.currScene = new CellType[rows, cols];
+        this.SetScenes();
 
         this.gameBoard.CreateBoard();
         this.InitializePlayers();
@@ -69,6 +63,7 @@ public class GameplayScene : IGameScene
         while (!this.gameState.IsGameOver)
         {
             this.gameTime.Tick();
+
             this.gameEngine.FixedUpdate(this.gameState, this.gameTime.DeltaTimeSeconds);
 
             this.SetCurrScene();
@@ -79,6 +74,14 @@ public class GameplayScene : IGameScene
             // Swap buffers (prev ↔ curr) to enable flicker-free differential rendering.
             this.SwapBuffers();
         }
+    }
+
+    private void SetScenes()
+    {
+        var rows = this.gameBoard.BoardConfig.TotalRows;
+        var cols = this.gameBoard.BoardConfig.TotalCols;
+        this.prevScene = new CellType[rows, cols];
+        this.currScene = new CellType[rows, cols];
     }
 
     private void SwapBuffers()
