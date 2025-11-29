@@ -5,6 +5,5 @@
     public interface ISnakeController
     {
         public Direction GetNextDirection(GetNextDirectionsContext context);
-
     }
 }

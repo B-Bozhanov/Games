@@ -19,8 +19,8 @@ public class GameplayScene : IGameScene
 {
     private int snakeId = 0;
 
-    private CellType[,] currScene;
-    private CellType[,] prevScene;
+    private CellType[,] currScene = null!;
+    private CellType[,] prevScene = null!;
     private readonly GameState gameState;
     private readonly GameMode gameMode;
     private readonly IGameBoard gameBoard;

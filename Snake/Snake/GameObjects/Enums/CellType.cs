@@ -1,12 +1,12 @@
 ﻿namespace SnakeGame.GameObjects.Enums
 {
-    public  enum CellType
+    public enum CellType
     {
         None,
         SnakeBody,
         SnakeHeadUp,
         SnakeHeadDown,
-        SnakeHeadLeft, 
+        SnakeHeadLeft,
         SnakeHeadRight,
         SnakeTailUp,
         SnakeTailDown,
@@ -17,7 +17,7 @@
         Obstacle,
         WallsLeftAndRight,
         WallsTopAndBottom,
-        WallTopLeft, 
+        WallTopLeft,
         WallTopRight,
         WallBottomLeft,
         WallBottomRight,

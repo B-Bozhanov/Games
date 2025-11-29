@@ -1,6 +1,5 @@
 ﻿namespace SnakeGame.Rendering
 {
-    using SnakeGame.GameObjects;
     using SnakeGame.GameObjects.Enums;
 
     public interface IRenderer

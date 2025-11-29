@@ -4,8 +4,6 @@
     using SnakeGame.GameObjects.Enums;
     using SnakeGame.Services;
 
-    using static SnakeGame.Common.GlobalConstants;
-
     public abstract class BaseSnake : ISnake
     {
         private bool shouldEat;
@@ -16,7 +14,7 @@
         {
             this.shouldEat = false;
             this.InitialBody(startPossition, length);
-           // this.CurrentDirection = SnakeConstants.DefaultSnakeDirection;
+            // this.CurrentDirection = SnakeConstants.DefaultSnakeDirection;
             this.BodySymbol = CellType.SnakeBody;
         }
 
@@ -88,7 +86,6 @@
                 Direction.Right => CellType.SnakeHeadRight,
                 _ => throw new NotSupportedException()
             };
-
 
             var tailDirection = this.tailDirection.Peek();
             this.NextTailPossitionSymbol = tailDirection switch

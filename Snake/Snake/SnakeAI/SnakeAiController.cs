@@ -6,12 +6,14 @@
     using SnakeGame.GameObjects.Abstractions.Interfaces;
     using SnakeGame.GameObjects.Enums;
     using SnakeGame.Services;
+
     // using SnakeGame.Services.Logging; // ако AiLogger ти е в друг namespace
 
     public sealed class SnakeAiController : ISnakeAiController
     {
         // --------- BFS state ---------
         private Coordinates?[,] parent;
+
         private readonly HashSet<Coordinates> visited = new();
         private readonly Queue<Coordinates> queue = new();
 
@@ -20,6 +22,7 @@
 
         // --------- Hamilton state ---------
         private readonly List<Coordinates> hamiltonPath = new();
+
         private readonly Dictionary<Coordinates, int> hamiltonIndex = new();
         private bool hamiltonInitialized;
         private int hRows;
@@ -206,7 +209,6 @@
 
                     path.Add(start);
                     path.Reverse();
-
 
                     if (path.Count < 2)
                     {

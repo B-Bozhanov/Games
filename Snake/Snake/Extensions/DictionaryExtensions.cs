@@ -1,7 +1,5 @@
 ﻿namespace SnakeGame.Extensions
 {
-    using SnakeGame.GameObjects;
-
     public static class DictionaryExtensions
     {
         public static bool AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IDictionary<TKey, TValue> dict)

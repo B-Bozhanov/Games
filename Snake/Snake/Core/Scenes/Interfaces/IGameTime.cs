@@ -7,6 +7,7 @@
         double FixedDeltaSeconds { get; }
 
         bool ShouldDoFixedUpdate();
+
         void Tick();
     }
 }

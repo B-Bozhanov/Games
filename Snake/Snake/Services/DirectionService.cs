@@ -23,7 +23,7 @@ public static class DirectionService
         Direction.Down => Direction.Down,
         Direction.Left => Direction.Left,
         Direction.Right => Direction.Right,
-        _=> Direction.None
+        _ => Direction.None
     };
 
     public static IEnumerable<Direction> GetAllListed()
@@ -58,7 +58,7 @@ public static class DirectionService
         KeyPressed.Right => Direction.Right,
         KeyPressed.Up => Direction.Up,
         KeyPressed.Down => Direction.Down,
-        _=> Direction.None
+        _ => Direction.None
     };
 
     public static bool IsOppositeDirection(Direction direction, Direction newDirection) =>

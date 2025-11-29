@@ -6,7 +6,7 @@
 
     public class SnakeEnеmy : BaseSnake
     {
-        public SnakeEnеmy(int startPossition = SnakeConstants.StartPossitionRow, int length = SnakeConstants.DefaultLength) 
+        public SnakeEnеmy(int startPossition = SnakeConstants.StartPossitionRow, int length = SnakeConstants.DefaultLength)
             : base(startPossition, length)
         {
             this.CurrentDirection = SnakeConstants.DefaultSnakeEnemyDirection;

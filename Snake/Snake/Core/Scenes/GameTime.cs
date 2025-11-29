@@ -7,10 +7,12 @@
         // === CONFIG ===
         // Update rate за FixedUpdate (много важно за multiplayer)
         private const double FixedStepSeconds = 1.0 / 60.0; // 60 ticks/second
+
         // Може да го направиш и 60 → 1.0 / 60.0
 
         // === TIME TRACKING ===
         private DateTime lastFrame;
+
         private DateTime fpsTimer;
 
         // Delta между два кадъра (render loop)
@@ -21,6 +23,7 @@
 
         // FPS counter
         public int CurrentFps { get; private set; }
+
         private int fpsCount = 0;
 
         public GameTime()
@@ -64,7 +67,7 @@
             if (accumulator >= FixedStepSeconds)
             {
                 accumulator -= FixedStepSeconds;
-                return true; 
+                return true;
             }
 
             return false;

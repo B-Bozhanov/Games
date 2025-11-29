@@ -27,7 +27,7 @@
 
         public ConsoleColor MapColor(CellType cellType) => cellType switch
         {
-            CellType.SnakeHeadUp 
+            CellType.SnakeHeadUp
             or CellType.SnakeHeadLeft
             or CellType.SnakeHeadRight
             or CellType.SnakeHeadDown => ConsoleColor.Red,

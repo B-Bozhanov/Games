@@ -1,6 +1,5 @@
 ﻿namespace SnakeGame.Input;
 
-using SnakeGame.GameObjects.Enums;
 using SnakeGame.Input.Enums;
 
 public sealed class ConsoleInputReader : IInputReader
@@ -24,7 +23,7 @@ public sealed class ConsoleInputReader : IInputReader
             ConsoleKey.S => KeyPressed.Down,
             ConsoleKey.A => KeyPressed.Left,
             ConsoleKey.D => KeyPressed.Right,
-            _=> KeyPressed.None,
+            _ => KeyPressed.None,
         };
     }
 }

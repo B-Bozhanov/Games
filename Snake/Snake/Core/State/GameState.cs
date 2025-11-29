@@ -5,7 +5,6 @@ using SnakeGame.GameObjects.Abstractions.Interfaces;
 
 public sealed class GameState(IGameBoard gameBoard)
 {
-
     public IGameBoard GameBoard { get; set; } = gameBoard;
 
     public IBoardConfig BoardConfig { get; } = gameBoard.BoardConfig;

@@ -9,8 +9,6 @@
         [FromKeyedServices("menu")] IGameScene menu,
         [FromKeyedServices("pause")] IGameScene pause) : IGameScene
     {
-
-       
         private readonly IGameScene gamePlayScene = gamePlayScene;
         private readonly IGameScene menu = menu;
         private readonly IGameScene pause = pause;

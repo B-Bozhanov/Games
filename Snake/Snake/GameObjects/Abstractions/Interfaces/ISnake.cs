@@ -6,7 +6,7 @@
     {
         public IReadOnlyCollection<Coordinates> Body { get; }
 
-        public bool ShouldEat {  get; }
+        public bool ShouldEat { get; }
 
         public Direction CurrentDirection { get; }
 
@@ -18,7 +18,7 @@
 
         public CellType BodySymbol { get; }
 
-        public CellType NextTailPossitionSymbol { get;}
+        public CellType NextTailPossitionSymbol { get; }
 
         public Coordinates HeadPossition { get; }
 

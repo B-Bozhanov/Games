@@ -1,11 +1,10 @@
-﻿namespace SnakeGame.Core.Scenes
-{
-    using SnakeGame.Core.Scenes.Interfaces;
+﻿namespace SnakeGame.Core.Scenes;
 
-    public class PauseScene : IGameScene
+using SnakeGame.Core.Scenes.Interfaces;
+
+public class PauseScene : IGameScene
+{
+    public void Run()
     {
-        public void Run()
-        {
-        }
     }
 }

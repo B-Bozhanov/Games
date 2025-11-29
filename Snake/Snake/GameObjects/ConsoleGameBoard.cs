@@ -9,7 +9,7 @@
     public class ConsoleGameBoard : BaseBoard
     {
         public ConsoleGameBoard(IBoardConfig boardConfig)
-            : base(boardConfig) 
+            : base(boardConfig)
         {
             this.SetSettings();
         }
